@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python Target Arena</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111722;
+      --panel: #18212f;
+      --panel-soft: #202c3d;
+      --panel-bright: #28384d;
+      --text: #fff8df;
+      --muted: #bdc7d6;
+      --line: #3c4f68;
+      --gold: #ffd166;
+      --green: #70e39b;
+      --red: #ff6b6b;
+      --blue: #62b6ff;
+      --cyan: #67e8f9;
+      --violet: #c29bff;
+      --ground: #4c6f4f;
+      --dark: #090d14;
+      --shadow: rgba(0, 0, 0, 0.34);
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 10%, rgba(98, 182, 255, 0.22), transparent 28%),
+        radial-gradient(circle at 76% 4%, rgba(194, 155, 255, 0.16), transparent 24%),
+        linear-gradient(180deg, #121a28 0%, #0d131d 100%);
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 18px;
+      align-items: center;
+      padding: 16px 22px;
+      background: rgba(12, 18, 28, 0.86);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing: 0;
+      color: var(--gold);
+      text-shadow: 3px 3px 0 #000;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      gap: 4px;
+      background: var(--dark);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .segmented button {
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .segmented button.active {
+      background: var(--blue);
+      color: #07101a;
+      font-weight: 700;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: end;
+    }
+
+    .pill {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(32, 44, 61, 0.85);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .levels {
+      padding: 18px;
+      background: rgba(13, 19, 29, 0.72);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: auto;
+    }
+
+    .levels h2,
+    .panel-title {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .level-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .level-card {
+      width: 100%;
+      min-height: 74px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: center;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .level-card.active {
+      border-color: var(--blue);
+      background: linear-gradient(135deg, #213856, #1d2d40);
+    }
+
+    .level-card.done {
+      border-color: rgba(112, 227, 155, 0.75);
+    }
+
+    .level-num {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--dark);
+      color: var(--gold);
+      font-weight: 800;
+      box-shadow: inset -3px -3px 0 rgba(255,255,255,0.05);
+    }
+
+    .level-name {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .level-state {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .content {
+      min-width: 0;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: minmax(360px, 48vh) minmax(330px, 1fr);
+      gap: 18px;
+    }
+
+    .range {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, #65b9e9 0 45%, #5d9163 45% 62%, #4f3d31 62% 100%);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    .range::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.24;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.24) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .mountain {
+      position: absolute;
+      bottom: 38%;
+      left: 4%;
+      width: 210px;
+      height: 76px;
+      background: #467459;
+      clip-path: polygon(0 100%, 30% 24%, 54% 70%, 76% 10%, 100% 100%);
+      opacity: 0.82;
+    }
+
+    .tower {
+      position: absolute;
+      right: 5%;
+      bottom: 37%;
+      width: 72px;
+      height: 118px;
+      background: #6f5a4c;
+      border: 4px solid #2b211d;
+      box-shadow: inset -12px 0 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .tower::before {
+      content: "";
+      position: absolute;
+      left: -13px;
+      top: -26px;
+      width: 92px;
+      height: 28px;
+      background: #7f453a;
+      border: 4px solid #2b211d;
+    }
+
+    .range-hud {
+      position: absolute;
+      inset: 14px 14px auto 14px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .hud-box {
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      background: rgba(9, 13, 20, 0.76);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .hud-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .hud-value {
+      font-size: clamp(20px, 3vw, 30px);
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .timer-bar {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      top: 100px;
+      z-index: 2;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(9, 13, 20, 0.7);
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
+      transition: width 160ms linear;
+    }
+
+    .rifle {
+      position: absolute;
+      left: 7%;
+      bottom: 17%;
+      width: 220px;
+      height: 86px;
+      z-index: 1;
+      filter: drop-shadow(10px 12px 0 rgba(0, 0, 0, 0.26));
+      transform-origin: left center;
+      animation: aim 1200ms ease-in-out infinite;
+    }
+
+    .rifle::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 36px;
+      width: 178px;
+      height: 16px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #7a4d2d 0 28%, #b57942 28% 48%, #2f3945 48% 100%);
+      border: 3px solid #111722;
+      box-shadow:
+        150px -6px 0 -2px #9aa7b4,
+        174px -6px 0 -2px #d8e0e8,
+        52px -19px 0 -4px #1d2632,
+        78px -20px 0 -5px #1d2632,
+        64px 19px 0 -3px #3f2c20,
+        72px 36px 0 -5px #3f2c20;
+    }
+
+    .rifle::after {
+      content: "";
+      position: absolute;
+      left: 104px;
+      top: 18px;
+      width: 38px;
+      height: 16px;
+      border: 3px solid #111722;
+      border-radius: 999px 999px 3px 3px;
+      background: #222d3a;
+      box-shadow:
+        -86px 26px 0 8px #5c3925,
+        -96px 34px 0 2px #111722,
+        23px 20px 0 -2px #151d27,
+        34px 24px 0 -4px #151d27,
+        76px 44px 0 -5px #151d27,
+        98px 44px 0 -5px #151d27;
+    }
+
+    .target {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      left: var(--x);
+      top: var(--y);
+      z-index: 3;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, #fff8df 0 18%, #ff6b6b 18% 34%, #fff8df 34% 50%, #3a86ff 50% 67%, #111722 67% 100%);
+      border: 4px solid #090d14;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.24);
+      transform: translate(-50%, -50%);
+      animation: bob var(--speed) steps(4) infinite alternate;
+    }
+
+    .target::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: calc(-1 * var(--size) * 0.8);
+      width: 7px;
+      height: calc(var(--size) * 0.86);
+      background: #3f2f25;
+      transform: translateX(-50%);
+      z-index: -1;
+    }
+
+    .target.hit {
+      pointer-events: none;
+      animation: fall 260ms steps(4) forwards;
+    }
+
+    .crosshair {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      margin: -19px 0 0 -19px;
+      border: 2px solid rgba(255, 248, 223, 0.86);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 5;
+      display: none;
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 248, 223, 0.86);
+    }
+
+    .crosshair::before {
+      width: 50px;
+      height: 2px;
+      left: -8px;
+      top: 17px;
+    }
+
+    .crosshair::after {
+      width: 2px;
+      height: 50px;
+      left: 17px;
+      top: -8px;
+    }
+
+    .range:hover .crosshair {
+      display: block;
+    }
+
+    .message {
+      position: absolute;
+      left: 50%;
+      top: 54%;
+      z-index: 4;
+      width: min(520px, calc(100% - 32px));
+      padding: 18px;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      background: rgba(9, 13, 20, 0.82);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .message strong {
+      display: block;
+      color: var(--gold);
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .message span {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .workbench {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(260px, 390px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      background: rgba(24, 33, 47, 0.94);
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .lesson {
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .lesson h2 {
+      margin: 0 0 10px;
+      color: var(--text);
+      font-size: 23px;
+    }
+
+    .lesson p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .task-box {
+      margin: 14px 0;
+      padding: 13px;
+      border-radius: 8px;
+      background: #101722;
+      border: 1px solid var(--line);
+    }
+
+    .task-box strong {
+      display: block;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      margin: 0;
+      padding: 12px;
+      min-height: 82px;
+      border-radius: 8px;
+      background: #0a0f17;
+      border: 1px solid var(--line);
+      color: #dff6ff;
+      line-height: 1.5;
+      overflow: auto;
+    }
+
+    .editor {
+      display: grid;
+      grid-template-rows: auto minmax(160px, 1fr) auto auto;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .editor-header h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .code-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: end;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid #49647f;
+      border-radius: 8px;
+      padding: 14px;
+      color: #e6fbff;
+      background: #080d14;
+      outline: none;
+      line-height: 1.55;
+      tab-size: 4;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 15px;
+    }
+
+    textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(103, 232, 249, 0.16);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      min-height: 42px;
+      padding: 0 15px;
+      border-radius: 8px;
+      background: var(--panel-bright);
+      border: 1px solid var(--line);
+      font-weight: 700;
+      transition: transform 120ms ease, filter 120ms ease, background 120ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn.primary {
+      background: var(--green);
+      color: #06120c;
+      border-color: transparent;
+    }
+
+    .btn.start {
+      background: var(--gold);
+      color: #1b1300;
+      border-color: transparent;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+      filter: none;
+    }
+
+    .result {
+      min-height: 52px;
+      padding: 12px 13px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #101722;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .result.good {
+      border-color: rgba(112, 227, 155, 0.72);
+      color: var(--green);
+    }
+
+    .result.bad {
+      border-color: rgba(255, 107, 107, 0.72);
+      color: var(--red);
+    }
+
+    @keyframes aim {
+      50% { transform: translateY(-3px) rotate(-1deg); }
+    }
+
+    @keyframes bob {
+      from { transform: translate(-50%, -50%) translateY(-8px); }
+      to { transform: translate(-50%, -50%) translateY(8px); }
+    }
+
+    @keyframes fall {
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(35px) rotate(18deg) scale(0.8);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        justify-content: start;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .levels {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .level-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content {
+        grid-template-rows: 360px auto;
+      }
+
+      .workbench {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .topbar,
+      .levels,
+      .content {
+        padding: 12px;
+      }
+
+      .level-list,
+      .range-hud {
+        grid-template-columns: 1fr;
+      }
+
+      .timer-bar {
+        top: 218px;
+      }
+
+      .rifle {
+        left: 1%;
+        transform: scale(0.78);
+        transform-origin: bottom left;
+      }
+
+      .editor-header {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Python Target Arena</h1>
+      <p>Выбери тему Python, реши задание, затем пройди короткий тир на время.</p>
+      </div>
+      <div class="segmented" aria-label="Выбор сложности">
+        <button class="active" type="button" data-difficulty="easy">Простая</button>
+        <button type="button" data-difficulty="hard">Сложная</button>
+      </div>
+      <div class="stats" id="stats"></div>
+    </header>
+
+    <div class="layout">
+      <aside class="levels">
+        <h2>Темы Python</h2>
+        <div class="level-list" id="levelList"></div>
+      </aside>
+
+      <main class="content">
+        <section class="range" id="range" aria-label="Тир с мишенями">
+          <div class="mountain"></div>
+          <div class="tower"></div>
+          <div class="range-hud">
+            <div class="hud-box">
+              <span class="hud-label">Время</span>
+              <span class="hud-value" id="timeText">0.0</span>
+            </div>
+            <div class="hud-box">
+              <span class="hud-label">Мишени</span>
+              <span class="hud-value" id="targetText">0/0</span>
+            </div>
+            <div class="hud-box">
+              <span class="hud-label">Точность</span>
+              <span class="hud-value" id="accuracyText">100%</span>
+            </div>
+          </div>
+          <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+          <div class="rifle" aria-hidden="true"></div>
+          <div class="crosshair" id="crosshair"></div>
+          <div class="message" id="rangeMessage">
+            <strong>Тир закрыт</strong>
+            <span>Проверь код. Если ответ верный, кнопка запуска откроет раунд с мишенями.</span>
+          </div>
+        </section>
+
+        <section class="workbench">
+          <article class="card lesson">
+            <h2 id="lessonTitle"></h2>
+            <p id="lessonText"></p>
+            <div class="task-box">
+              <strong>Задание для допуска</strong>
+              <span id="taskText"></span>
+            </div>
+            <h3 class="panel-title">Подсказка</h3>
+            <pre class="hint" id="hintText"></pre>
+          </article>
+
+          <section class="card editor">
+            <div class="editor-header">
+              <h2>Редактор кода</h2>
+              <div class="code-tools">
+                <button class="btn" type="button" id="templateBtn">Шаблон</button>
+                <button class="btn" type="button" id="hintBtn">Показать подсказку</button>
+              </div>
+            </div>
+            <textarea id="codeInput" spellcheck="false"></textarea>
+            <div class="actions">
+              <button class="btn primary" type="button" id="checkBtn">Проверить код</button>
+              <button class="btn start" type="button" id="startBtn" disabled>Начать тир</button>
+              <button class="btn" type="button" id="prevBtn">Назад</button>
+              <button class="btn" type="button" id="nextBtn">Дальше</button>
+            </div>
+            <div class="result" id="resultText">Напиши решение и нажми “Проверить код”.</div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const oldLevels = [
+      {
+        title: "Тема 1: print",
+        short: "print",
+        lesson: "print() выводит текст. В учебной арене это команда, которая заряжает винтовку.",
+        easyTask: "Выведи слово hit.",
+        hardTask: "Выведи hit, затем reload на следующей строке.",
+        easyStart: "print('')",
+        hardStart: "print('')\nprint('')",
+        easyHint: "print('hit')",
+        hardHint: "print('hit')\nprint('reload')",
+        checkEasy: code => /print\s*\(\s*["']hit["']\s*\)/i.test(code),
+        checkHard: code => /print\s*\(\s*["']hit["']\s*\)/i.test(code) && /print\s*\(\s*["']reload["']\s*\)/i.test(code),
+        easyRound: { time: 12, targets: 5, size: 62 },
+        hardRound: { time: 9, targets: 7, size: 50 }
+      },
+      {
+        title: "Тема 2: переменные",
+        short: "variables",
+        lesson: "Переменная хранит значение. Так можно сохранить команду атаки или количество патронов.",
+        easyTask: "Создай attack = 'hit' и выведи attack.",
+        hardTask: "Создай attack = 'hit' и ammo = 3, затем выведи обе переменные.",
+        easyStart: "attack = ''\nprint()",
+        hardStart: "attack = ''\nammo = 0\nprint()\nprint()",
+        easyHint: "attack = 'hit'\nprint(attack)",
+        hardHint: "attack = 'hit'\nammo = 3\nprint(attack)\nprint(ammo)",
+        checkEasy: code => /attack\s*=\s*["']hit["']/i.test(code) && /print\s*\(\s*attack\s*\)/i.test(code),
+        checkHard: code => /attack\s*=\s*["']hit["']/i.test(code) && /ammo\s*=\s*3\b/i.test(code) && /print\s*\(\s*attack\s*\)/i.test(code) && /print\s*\(\s*ammo\s*\)/i.test(code),
+        easyRound: { time: 11, targets: 6, size: 58 },
+        hardRound: { time: 8, targets: 8, size: 46 }
+      },
+      {
+        title: "Тема 3: input",
+        short: "input",
+        lesson: "input() получает текст от игрока. Его обычно кладут в переменную, чтобы использовать дальше.",
+        easyTask: "Получи имя игрока через input() и сохрани в name.",
+        hardTask: "Получи command через input(). Если игрок ввел команду, выведи command.",
+        easyStart: "name = input('')",
+        hardStart: "command = input('')\nprint()",
+        easyHint: "name = input('Имя: ')",
+        hardHint: "command = input('Команда: ')\nprint(command)",
+        checkEasy: code => /name\s*=\s*input\s*\(/i.test(code),
+        checkHard: code => /command\s*=\s*input\s*\(/i.test(code) && /print\s*\(\s*command\s*\)/i.test(code),
+        easyRound: { time: 10, targets: 6, size: 56 },
+        hardRound: { time: 7.5, targets: 8, size: 44 }
+      },
+      {
+        title: "Тема 4: if",
+        short: "if",
+        lesson: "if запускает блок кода только тогда, когда условие истинное. Отступы обязательны.",
+        easyTask: "Создай hp = 10. Если hp > 0, выведи hit.",
+        hardTask: "Создай command = 'hit'. Если command == 'hit', выведи attack, иначе wait.",
+        easyStart: "hp = 0\nif hp > 0:\n    ",
+        hardStart: "command = ''\nif command == 'hit':\n    \nelse:\n    ",
+        easyHint: "hp = 10\nif hp > 0:\n    print('hit')",
+        hardHint: "command = 'hit'\nif command == 'hit':\n    print('attack')\nelse:\n    print('wait')",
+        checkEasy: code => /hp\s*=\s*10\b/i.test(code) && /if\s+hp\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*["']hit["']\s*\)/i.test(code),
+        checkHard: code => /command\s*=\s*["']hit["']/i.test(code) && /if\s+command\s*==\s*["']hit["']\s*:/i.test(code) && /print\s*\(\s*["']attack["']\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*["']wait["']\s*\)/i.test(code),
+        easyRound: { time: 9.5, targets: 7, size: 50 },
+        hardRound: { time: 7, targets: 9, size: 40 }
+      },
+      {
+        title: "Тема 5: def",
+        short: "def",
+        lesson: "def создает функцию. Функция хранит набор команд, а запуск происходит только после вызова.",
+        easyTask: "Создай функцию attack(), внутри print('hit'), затем вызови attack().",
+        hardTask: "Создай функцию attack(word), внутри print(word), затем вызови attack('hit').",
+        easyStart: "def attack():\n    \n\nattack()",
+        hardStart: "def attack(word):\n    \n\nattack('')",
+        easyHint: "def attack():\n    print('hit')\n\nattack()",
+        hardHint: "def attack(word):\n    print(word)\n\nattack('hit')",
+        checkEasy: code => /def\s+attack\s*\(\s*\)\s*:/i.test(code) && /print\s*\(\s*["']hit["']\s*\)/i.test(code) && /attack\s*\(\s*\)\s*$/im.test(code.trim()),
+        checkHard: code => /def\s+attack\s*\(\s*word\s*\)\s*:/i.test(code) && /print\s*\(\s*word\s*\)/i.test(code) && /attack\s*\(\s*["']hit["']\s*\)/i.test(code),
+        easyRound: { time: 9, targets: 8, size: 48 },
+        hardRound: { time: 6.5, targets: 10, size: 38 }
+      }
+    ];
+
+    const topicGroups = [
+      {
+        topic: "print",
+        lesson: "print() выводит текст на экран. В этой игре правильный вывод открывает тир.",
+        tasks: [
+          { name: "строка", easyTask: "Выведи слово hit.", hardTask: "Выведи hit и reload на двух строках.", easyStart: "print('')", hardStart: "print('')\nprint('')", easyHint: "print('hit')", hardHint: "print('hit')\nprint('reload')", checkEasy: code => /print\s*\(\s*['\"]hit['\"]\s*\)/i.test(code), checkHard: code => /print\s*\(\s*['\"]hit['\"]\s*\)/i.test(code) && /print\s*\(\s*['\"]reload['\"]\s*\)/i.test(code) },
+          { name: "число", easyTask: "Выведи число 16.", hardTask: "Выведи числа 16 и 32 на двух строках.", easyStart: "print()", hardStart: "print()\nprint()", easyHint: "print(16)", hardHint: "print(16)\nprint(32)", checkEasy: code => /print\s*\(\s*16\s*\)/i.test(code), checkHard: code => /print\s*\(\s*16\s*\)/i.test(code) && /print\s*\(\s*32\s*\)/i.test(code) },
+          { name: "фраза", easyTask: "Выведи фразу ready player.", hardTask: "Выведи ready player и start.", easyStart: "print('')", hardStart: "print('')\nprint('')", easyHint: "print('ready player')", hardHint: "print('ready player')\nprint('start')", checkEasy: code => /print\s*\(\s*['\"]ready player['\"]\s*\)/i.test(code), checkHard: code => /print\s*\(\s*['\"]ready player['\"]\s*\)/i.test(code) && /print\s*\(\s*['\"]start['\"]\s*\)/i.test(code) },
+          { name: "выражение", easyTask: "Выведи результат 7 + 5.", hardTask: "Выведи 7 + 5, затем 20 - 8.", easyStart: "print()", hardStart: "print()\nprint()", easyHint: "print(7 + 5)", hardHint: "print(7 + 5)\nprint(20 - 8)", checkEasy: code => /print\s*\(\s*7\s*\+\s*5\s*\)/i.test(code), checkHard: code => /print\s*\(\s*7\s*\+\s*5\s*\)/i.test(code) && /print\s*\(\s*20\s*-\s*8\s*\)/i.test(code) },
+          { name: "комбо", easyTask: "Выведи aim fire одним print.", hardTask: "Выведи aim, fire и win тремя print.", easyStart: "print('')", hardStart: "print('')\nprint('')\nprint('')", easyHint: "print('aim fire')", hardHint: "print('aim')\nprint('fire')\nprint('win')", checkEasy: code => /print\s*\(\s*['\"]aim fire['\"]\s*\)/i.test(code), checkHard: code => /print\s*\(\s*['\"]aim['\"]\s*\)/i.test(code) && /print\s*\(\s*['\"]fire['\"]\s*\)/i.test(code) && /print\s*\(\s*['\"]win['\"]\s*\)/i.test(code) }
+        ]
+      },
+      {
+        topic: "переменные",
+        lesson: "Переменная хранит значение. Ее можно менять, выводить и использовать в условиях.",
+        tasks: [
+          { name: "текст", easyTask: "Создай attack = 'hit' и выведи attack.", hardTask: "Создай attack = 'hit' и ammo = 3, затем выведи обе переменные.", easyStart: "attack = ''\nprint()", hardStart: "attack = ''\nammo = 0\nprint()\nprint()", easyHint: "attack = 'hit'\nprint(attack)", hardHint: "attack = 'hit'\nammo = 3\nprint(attack)\nprint(ammo)", checkEasy: code => /attack\s*=\s*['\"]hit['\"]/i.test(code) && /print\s*\(\s*attack\s*\)/i.test(code), checkHard: code => /attack\s*=\s*['\"]hit['\"]/i.test(code) && /ammo\s*=\s*3\b/i.test(code) && /print\s*\(\s*attack\s*\)/i.test(code) && /print\s*\(\s*ammo\s*\)/i.test(code) },
+          { name: "очки", easyTask: "Создай score = 100 и выведи score.", hardTask: "Создай score = 100, bonus = 50 и выведи score + bonus.", easyStart: "score = 0\nprint()", hardStart: "score = 0\nbonus = 0\nprint()", easyHint: "score = 100\nprint(score)", hardHint: "score = 100\nbonus = 50\nprint(score + bonus)", checkEasy: code => /score\s*=\s*100\b/i.test(code) && /print\s*\(\s*score\s*\)/i.test(code), checkHard: code => /score\s*=\s*100\b/i.test(code) && /bonus\s*=\s*50\b/i.test(code) && /print\s*\(\s*score\s*\+\s*bonus\s*\)/i.test(code) },
+          { name: "имя", easyTask: "Создай name = 'Alex' и выведи name.", hardTask: "Создай name = 'Alex', role = 'sniper' и выведи обе переменные.", easyStart: "name = ''\nprint()", hardStart: "name = ''\nrole = ''\nprint()\nprint()", easyHint: "name = 'Alex'\nprint(name)", hardHint: "name = 'Alex'\nrole = 'sniper'\nprint(name)\nprint(role)", checkEasy: code => /name\s*=\s*['\"]Alex['\"]/i.test(code) && /print\s*\(\s*name\s*\)/i.test(code), checkHard: code => /name\s*=\s*['\"]Alex['\"]/i.test(code) && /role\s*=\s*['\"]sniper['\"]/i.test(code) && /print\s*\(\s*name\s*\)/i.test(code) && /print\s*\(\s*role\s*\)/i.test(code) },
+          { name: "перезапись", easyTask: "Создай ammo = 5, затем ammo = 4 и выведи ammo.", hardTask: "Создай ammo = 5, уменьши ammo на 1 и выведи ammo.", easyStart: "ammo = 0\nammo = 0\nprint()", hardStart: "ammo = 0\nammo = ammo - 0\nprint()", easyHint: "ammo = 5\nammo = 4\nprint(ammo)", hardHint: "ammo = 5\nammo = ammo - 1\nprint(ammo)", checkEasy: code => /ammo\s*=\s*5\b/i.test(code) && /ammo\s*=\s*4\b/i.test(code) && /print\s*\(\s*ammo\s*\)/i.test(code), checkHard: code => /ammo\s*=\s*5\b/i.test(code) && /ammo\s*=\s*ammo\s*-\s*1\b/i.test(code) && /print\s*\(\s*ammo\s*\)/i.test(code) },
+          { name: "сумма", easyTask: "Создай a = 2 и b = 3, выведи a + b.", hardTask: "Создай total = a + b и выведи total.", easyStart: "a = 0\nb = 0\nprint()", hardStart: "a = 0\nb = 0\ntotal = 0\nprint()", easyHint: "a = 2\nb = 3\nprint(a + b)", hardHint: "a = 2\nb = 3\ntotal = a + b\nprint(total)", checkEasy: code => /a\s*=\s*2\b/i.test(code) && /b\s*=\s*3\b/i.test(code) && /print\s*\(\s*a\s*\+\s*b\s*\)/i.test(code), checkHard: code => /a\s*=\s*2\b/i.test(code) && /b\s*=\s*3\b/i.test(code) && /total\s*=\s*a\s*\+\s*b/i.test(code) && /print\s*\(\s*total\s*\)/i.test(code) }
+        ]
+      },
+      {
+        topic: "input",
+        lesson: "input() получает текст от пользователя. Обычно результат сохраняют в переменную.",
+        tasks: [
+          { name: "имя", easyTask: "Получи имя через input() и сохрани в name.", hardTask: "Получи name через input() и выведи name.", easyStart: "name = input('')", hardStart: "name = input('')\nprint()", easyHint: "name = input('Имя: ')", hardHint: "name = input('Имя: ')\nprint(name)", checkEasy: code => /name\s*=\s*input\s*\(/i.test(code), checkHard: code => /name\s*=\s*input\s*\(/i.test(code) && /print\s*\(\s*name\s*\)/i.test(code) },
+          { name: "команда", easyTask: "Получи command через input().", hardTask: "Получи command через input() и выведи command.", easyStart: "command = input('')", hardStart: "command = input('')\nprint()", easyHint: "command = input('Команда: ')", hardHint: "command = input('Команда: ')\nprint(command)", checkEasy: code => /command\s*=\s*input\s*\(/i.test(code), checkHard: code => /command\s*=\s*input\s*\(/i.test(code) && /print\s*\(\s*command\s*\)/i.test(code) },
+          { name: "возраст", easyTask: "Получи age через input().", hardTask: "Получи age через input(), преврати в int и сохрани обратно в age.", easyStart: "age = input('')", hardStart: "age = input('')\nage = int()", easyHint: "age = input('Возраст: ')", hardHint: "age = input('Возраст: ')\nage = int(age)", checkEasy: code => /age\s*=\s*input\s*\(/i.test(code), checkHard: code => /age\s*=\s*input\s*\(/i.test(code) && /age\s*=\s*int\s*\(\s*age\s*\)/i.test(code) },
+          { name: "урон", easyTask: "Получи damage через input().", hardTask: "Получи damage, затем выведи 'damage' и damage.", easyStart: "damage = input('')", hardStart: "damage = input('')\nprint()\nprint()", easyHint: "damage = input('Урон: ')", hardHint: "damage = input('Урон: ')\nprint('damage')\nprint(damage)", checkEasy: code => /damage\s*=\s*input\s*\(/i.test(code), checkHard: code => /damage\s*=\s*input\s*\(/i.test(code) && /print\s*\(\s*['\"]damage['\"]\s*\)/i.test(code) && /print\s*\(\s*damage\s*\)/i.test(code) },
+          { name: "два ввода", easyTask: "Получи first и second через два input().", hardTask: "Получи first и second, затем выведи first + second.", easyStart: "first = input('')\nsecond = input('')", hardStart: "first = input('')\nsecond = input('')\nprint()", easyHint: "first = input('Первое: ')\nsecond = input('Второе: ')", hardHint: "first = input('Первое: ')\nsecond = input('Второе: ')\nprint(first + second)", checkEasy: code => /first\s*=\s*input\s*\(/i.test(code) && /second\s*=\s*input\s*\(/i.test(code), checkHard: code => /first\s*=\s*input\s*\(/i.test(code) && /second\s*=\s*input\s*\(/i.test(code) && /print\s*\(\s*first\s*\+\s*second\s*\)/i.test(code) }
+        ]
+      },
+      {
+        topic: "if",
+        lesson: "if проверяет условие. Если условие истинное, выполняется блок кода с отступом.",
+        tasks: [
+          { name: "hp", easyTask: "Создай hp = 10. Если hp > 0, выведи hit.", hardTask: "Если hp > 0, выведи attack, иначе wait.", easyStart: "hp = 0\nif hp > 0:\n    ", hardStart: "hp = 0\nif hp > 0:\n    \nelse:\n    ", easyHint: "hp = 10\nif hp > 0:\n    print('hit')", hardHint: "hp = 10\nif hp > 0:\n    print('attack')\nelse:\n    print('wait')", checkEasy: code => /hp\s*=\s*10\b/i.test(code) && /if\s+hp\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]hit['\"]\s*\)/i.test(code), checkHard: code => /hp\s*=\s*10\b/i.test(code) && /if\s+hp\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]attack['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]wait['\"]\s*\)/i.test(code) },
+          { name: "команда", easyTask: "Создай command = 'hit'. Если command == 'hit', выведи attack.", hardTask: "Добавь else: если command не hit, выведи wait.", easyStart: "command = ''\nif command == 'hit':\n    ", hardStart: "command = ''\nif command == 'hit':\n    \nelse:\n    ", easyHint: "command = 'hit'\nif command == 'hit':\n    print('attack')", hardHint: "command = 'hit'\nif command == 'hit':\n    print('attack')\nelse:\n    print('wait')", checkEasy: code => /command\s*=\s*['\"]hit['\"]/i.test(code) && /if\s+command\s*==\s*['\"]hit['\"]\s*:/i.test(code) && /print\s*\(\s*['\"]attack['\"]\s*\)/i.test(code), checkHard: code => /command\s*=\s*['\"]hit['\"]/i.test(code) && /if\s+command\s*==\s*['\"]hit['\"]\s*:/i.test(code) && /print\s*\(\s*['\"]attack['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]wait['\"]\s*\)/i.test(code) },
+          { name: "патроны", easyTask: "Создай ammo = 3. Если ammo > 0, выведи fire.", hardTask: "Если ammo > 0, выведи fire, иначе reload.", easyStart: "ammo = 0\nif ammo > 0:\n    ", hardStart: "ammo = 0\nif ammo > 0:\n    \nelse:\n    ", easyHint: "ammo = 3\nif ammo > 0:\n    print('fire')", hardHint: "ammo = 3\nif ammo > 0:\n    print('fire')\nelse:\n    print('reload')", checkEasy: code => /ammo\s*=\s*3\b/i.test(code) && /if\s+ammo\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]fire['\"]\s*\)/i.test(code), checkHard: code => /ammo\s*=\s*3\b/i.test(code) && /if\s+ammo\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]fire['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]reload['\"]\s*\)/i.test(code) },
+          { name: "очки", easyTask: "Создай score = 80. Если score >= 50, выведи win.", hardTask: "Если score >= 50, выведи win, иначе train.", easyStart: "score = 0\nif score >= 50:\n    ", hardStart: "score = 0\nif score >= 50:\n    \nelse:\n    ", easyHint: "score = 80\nif score >= 50:\n    print('win')", hardHint: "score = 80\nif score >= 50:\n    print('win')\nelse:\n    print('train')", checkEasy: code => /score\s*=\s*80\b/i.test(code) && /if\s+score\s*>=\s*50\s*:/i.test(code) && /print\s*\(\s*['\"]win['\"]\s*\)/i.test(code), checkHard: code => /score\s*=\s*80\b/i.test(code) && /if\s+score\s*>=\s*50\s*:/i.test(code) && /print\s*\(\s*['\"]win['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]train['\"]\s*\)/i.test(code) },
+          { name: "пароль", easyTask: "Создай code = 'python'. Если code == 'python', выведи open.", hardTask: "Добавь else и выведи closed.", easyStart: "code = ''\nif code == 'python':\n    ", hardStart: "code = ''\nif code == 'python':\n    \nelse:\n    ", easyHint: "code = 'python'\nif code == 'python':\n    print('open')", hardHint: "code = 'python'\nif code == 'python':\n    print('open')\nelse:\n    print('closed')", checkEasy: code => /code\s*=\s*['\"]python['\"]/i.test(code) && /if\s+code\s*==\s*['\"]python['\"]\s*:/i.test(code) && /print\s*\(\s*['\"]open['\"]\s*\)/i.test(code), checkHard: code => /code\s*=\s*['\"]python['\"]/i.test(code) && /if\s+code\s*==\s*['\"]python['\"]\s*:/i.test(code) && /print\s*\(\s*['\"]open['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]closed['\"]\s*\)/i.test(code) }
+        ]
+      },
+      {
+        topic: "def",
+        lesson: "def создает функцию. Функция хранит команды и выполняется только после вызова.",
+        tasks: [
+          { name: "простая функция", easyTask: "Создай attack(), внутри print('hit'), затем вызови attack().", hardTask: "Создай attack(word), внутри print(word), затем вызови attack('hit').", easyStart: "def attack():\n    \n\nattack()", hardStart: "def attack(word):\n    \n\nattack('')", easyHint: "def attack():\n    print('hit')\n\nattack()", hardHint: "def attack(word):\n    print(word)\n\nattack('hit')", checkEasy: code => /def\s+attack\s*\(\s*\)\s*:/i.test(code) && /print\s*\(\s*['\"]hit['\"]\s*\)/i.test(code) && /attack\s*\(\s*\)\s*$/im.test(code.trim()), checkHard: code => /def\s+attack\s*\(\s*word\s*\)\s*:/i.test(code) && /print\s*\(\s*word\s*\)/i.test(code) && /attack\s*\(\s*['\"]hit['\"]\s*\)/i.test(code) },
+          { name: "перезарядка", easyTask: "Создай reload(), внутри print('reload'), затем вызови reload().", hardTask: "Создай reload(ammo), внутри print(ammo), затем вызови reload(5).", easyStart: "def reload():\n    \n\nreload()", hardStart: "def reload(ammo):\n    \n\nreload()", easyHint: "def reload():\n    print('reload')\n\nreload()", hardHint: "def reload(ammo):\n    print(ammo)\n\nreload(5)", checkEasy: code => /def\s+reload\s*\(\s*\)\s*:/i.test(code) && /print\s*\(\s*['\"]reload['\"]\s*\)/i.test(code) && /reload\s*\(\s*\)\s*$/im.test(code.trim()), checkHard: code => /def\s+reload\s*\(\s*ammo\s*\)\s*:/i.test(code) && /print\s*\(\s*ammo\s*\)/i.test(code) && /reload\s*\(\s*5\s*\)/i.test(code) },
+          { name: "return", easyTask: "Создай get_hit(), внутри return 'hit', затем print(get_hit()).", hardTask: "Создай get_power(), внутри return 10, затем print(get_power() + 5).", easyStart: "def get_hit():\n    \n\nprint()", hardStart: "def get_power():\n    \n\nprint()", easyHint: "def get_hit():\n    return 'hit'\n\nprint(get_hit())", hardHint: "def get_power():\n    return 10\n\nprint(get_power() + 5)", checkEasy: code => /def\s+get_hit\s*\(\s*\)\s*:/i.test(code) && /return\s+['\"]hit['\"]/i.test(code) && /print\s*\(\s*get_hit\s*\(\s*\)\s*\)/i.test(code), checkHard: code => /def\s+get_power\s*\(\s*\)\s*:/i.test(code) && /return\s+10\b/i.test(code) && /print\s*\(\s*get_power\s*\(\s*\)\s*\+\s*5\s*\)/i.test(code) },
+          { name: "параметр", easyTask: "Создай say(text), внутри print(text), затем вызови say('ready').", hardTask: "Создай add(a, b), внутри print(a + b), затем вызови add(2, 3).", easyStart: "def say(text):\n    \n\nsay('')", hardStart: "def add(a, b):\n    \n\nadd(0, 0)", easyHint: "def say(text):\n    print(text)\n\nsay('ready')", hardHint: "def add(a, b):\n    print(a + b)\n\nadd(2, 3)", checkEasy: code => /def\s+say\s*\(\s*text\s*\)\s*:/i.test(code) && /print\s*\(\s*text\s*\)/i.test(code) && /say\s*\(\s*['\"]ready['\"]\s*\)/i.test(code), checkHard: code => /def\s+add\s*\(\s*a\s*,\s*b\s*\)\s*:/i.test(code) && /print\s*\(\s*a\s*\+\s*b\s*\)/i.test(code) && /add\s*\(\s*2\s*,\s*3\s*\)/i.test(code) },
+          { name: "if внутри def", easyTask: "Создай check(ammo). Если ammo > 0, выведи fire. Вызови check(3).", hardTask: "Добавь else: если ammo нет, выведи reload. Вызови check(0).", easyStart: "def check(ammo):\n    if ammo > 0:\n        \n\ncheck()", hardStart: "def check(ammo):\n    if ammo > 0:\n        \n    else:\n        \n\ncheck()", easyHint: "def check(ammo):\n    if ammo > 0:\n        print('fire')\n\ncheck(3)", hardHint: "def check(ammo):\n    if ammo > 0:\n        print('fire')\n    else:\n        print('reload')\n\ncheck(0)", checkEasy: code => /def\s+check\s*\(\s*ammo\s*\)\s*:/i.test(code) && /if\s+ammo\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]fire['\"]\s*\)/i.test(code) && /check\s*\(\s*3\s*\)/i.test(code), checkHard: code => /def\s+check\s*\(\s*ammo\s*\)\s*:/i.test(code) && /if\s+ammo\s*>\s*0\s*:/i.test(code) && /print\s*\(\s*['\"]fire['\"]\s*\)/i.test(code) && /else\s*:/i.test(code) && /print\s*\(\s*['\"]reload['\"]\s*\)/i.test(code) && /check\s*\(\s*0\s*\)/i.test(code) }
+        ]
+      }
+    ];
+
+    const levels = topicGroups.flatMap((group, topicIndex) =>
+      group.tasks.map((task, taskIndex) => ({
+        ...task,
+        title: `Тема ${topicIndex + 1}: ${group.topic} · задание ${taskIndex + 1}`,
+        short: group.topic,
+        lesson: group.lesson,
+        easyRound: {
+          time: Math.max(7, 12 - topicIndex - taskIndex * 0.35),
+          targets: 5 + taskIndex,
+          size: Math.max(42, 62 - topicIndex * 3 - taskIndex * 2)
+        },
+        hardRound: {
+          time: Math.max(5.5, 9 - topicIndex * 0.5 - taskIndex * 0.35),
+          targets: 7 + taskIndex,
+          size: Math.max(34, 50 - topicIndex * 3 - taskIndex * 2)
+        }
+      }))
+    );
+
+    const state = {
+      level: 0,
+      difficulty: "easy",
+      solved: false,
+      wins: new Set(),
+      running: false,
+      hits: 0,
+      shots: 0,
+      targetCount: 0,
+      timeLeft: 0,
+      roundTime: 0,
+      timer: null
+    };
+
+    const levelList = document.getElementById("levelList");
+    const stats = document.getElementById("stats");
+    const lessonTitle = document.getElementById("lessonTitle");
+    const lessonText = document.getElementById("lessonText");
+    const taskText = document.getElementById("taskText");
+    const hintText = document.getElementById("hintText");
+    const codeInput = document.getElementById("codeInput");
+    const resultText = document.getElementById("resultText");
+    const range = document.getElementById("range");
+    const rangeMessage = document.getElementById("rangeMessage");
+    const timeText = document.getElementById("timeText");
+    const targetText = document.getElementById("targetText");
+    const accuracyText = document.getElementById("accuracyText");
+    const timerFill = document.getElementById("timerFill");
+    const startBtn = document.getElementById("startBtn");
+    const crosshair = document.getElementById("crosshair");
+
+    function roundSettings() {
+      const level = levels[state.level];
+      return state.difficulty === "easy" ? level.easyRound : level.hardRound;
+    }
+
+    function normalize(code) {
+      return code.replace(/\r/g, "").trim();
+    }
+
+    function stopRound() {
+      state.running = false;
+      clearInterval(state.timer);
+      range.querySelectorAll(".target").forEach(target => target.remove());
+    }
+
+    function selectLevel(index) {
+      stopRound();
+      state.level = index;
+      state.solved = false;
+      const level = levels[index];
+      lessonTitle.textContent = level.title;
+      lessonText.textContent = level.lesson;
+      taskText.textContent = state.difficulty === "easy" ? level.easyTask : level.hardTask;
+      hintText.textContent = "Сначала попробуй сам. Подсказка появится по кнопке.";
+      codeInput.value = state.difficulty === "easy" ? level.easyStart : level.hardStart;
+      resultText.className = "result";
+      resultText.textContent = "Напиши решение и нажми “Проверить код”.";
+      startBtn.disabled = true;
+      setMessage("Тир закрыт", "Правильный код откроет раунд. После запуска кликай по мишеням до конца таймера.");
+      resetHud();
+      renderLevels();
+      renderStats();
+    }
+
+    function resetHud() {
+      const settings = roundSettings();
+      state.hits = 0;
+      state.shots = 0;
+      state.targetCount = settings.targets;
+      state.timeLeft = settings.time;
+      state.roundTime = settings.time;
+      updateHud();
+    }
+
+    function updateHud() {
+      timeText.textContent = state.timeLeft.toFixed(1);
+      targetText.textContent = `${state.hits}/${state.targetCount}`;
+      const accuracy = state.shots === 0 ? 100 : Math.round((state.hits / state.shots) * 100);
+      accuracyText.textContent = `${accuracy}%`;
+      const width = state.roundTime ? Math.max(0, (state.timeLeft / state.roundTime) * 100) : 100;
+      timerFill.style.width = `${width}%`;
+    }
+
+    function setMessage(title, text, hidden = false) {
+      rangeMessage.hidden = hidden;
+      rangeMessage.innerHTML = `<strong>${title}</strong><span>${text}</span>`;
+    }
+
+    function renderLevels() {
+      levelList.innerHTML = "";
+      levels.forEach((level, index) => {
+        const button = document.createElement("button");
+        const done = state.wins.has(keyFor(index));
+        const topicNumber = Math.floor(index / 5) + 1;
+        const taskNumber = (index % 5) + 1;
+        button.className = `level-card${index === state.level ? " active" : ""}${done ? " done" : ""}`;
+        button.type = "button";
+        button.innerHTML = `
+          <span class="level-num">${index + 1}</span>
+          <span>
+            <span class="level-name">Тема ${topicNumber}: ${level.short}</span>
+            <span class="level-state">Задание ${taskNumber}: ${level.name} · ${done ? "пройдено" : index === state.level ? "текущее" : "не пройдено"}</span>
+          </span>
+        `;
+        button.addEventListener("click", () => selectLevel(index));
+        levelList.appendChild(button);
+      });
+    }
+
+    function renderStats() {
+      const passed = levels.filter((_, index) => state.wins.has(keyFor(index))).length;
+      const settings = roundSettings();
+      stats.innerHTML = `
+        <span class="pill">Прогресс: ${passed}/${levels.length}</span>
+        <span class="pill">Раунд: ${settings.time} сек</span>
+        <span class="pill">Цель: ${settings.targets} миш.</span>
+      `;
+    }
+
+    function keyFor(index = state.level) {
+      return `${state.difficulty}-${index}`;
+    }
+
+    function checkCode() {
+      const level = levels[state.level];
+      const code = normalize(codeInput.value);
+      const ok = state.difficulty === "easy" ? level.checkEasy(code) : level.checkHard(code);
+
+      if (!ok) {
+        state.solved = false;
+        startBtn.disabled = true;
+        resultText.className = "result bad";
+        resultText.textContent = "Код пока не проходит проверку. Проверь кавычки, скобки, имена переменных и отступы.";
+        setMessage("Допуск не получен", "Исправь код, затем снова нажми “Проверить код”.");
+        return;
+      }
+
+      state.solved = true;
+      startBtn.disabled = false;
+      resultText.className = "result good";
+      resultText.textContent = "Код верный. Теперь запускай тир и сбивай мишени до конца таймера.";
+      setMessage("Раунд готов", "Нажми “Начать тир”. Мишени появляются в разных точках, промахи портят точность.");
+    }
+
+    function startRound() {
+      if (!state.solved || state.running) return;
+      stopRound();
+      resetHud();
+      state.running = true;
+      startBtn.disabled = true;
+      setMessage("", "", true);
+      spawnTargets();
+      updateHud();
+
+      state.timer = setInterval(() => {
+        state.timeLeft = Math.max(0, state.timeLeft - 0.1);
+        updateHud();
+        if (state.timeLeft <= 0) finishRound(false);
+      }, 100);
+    }
+
+    function spawnTargets() {
+      const settings = roundSettings();
+      for (let index = 0; index < settings.targets; index += 1) {
+        const target = document.createElement("button");
+        target.type = "button";
+        target.className = "target";
+        target.style.setProperty("--size", `${settings.size}px`);
+        target.style.setProperty("--speed", `${700 + Math.random() * 650}ms`);
+        target.style.setProperty("--x", `${34 + Math.random() * 54}%`);
+        target.style.setProperty("--y", `${26 + Math.random() * 43}%`);
+        target.setAttribute("aria-label", "Мишень");
+        target.addEventListener("click", event => {
+          event.stopPropagation();
+          hitTarget(target);
+        });
+        range.appendChild(target);
+      }
+    }
+
+    function hitTarget(target) {
+      if (!state.running || target.classList.contains("hit")) return;
+      state.hits += 1;
+      state.shots += 1;
+      target.classList.add("hit");
+      updateHud();
+      setTimeout(() => target.remove(), 260);
+      if (state.hits >= state.targetCount) finishRound(true);
+    }
+
+    function missShot() {
+      if (!state.running) return;
+      state.shots += 1;
+      updateHud();
+    }
+
+    function finishRound(win) {
+      const accuracy = state.shots === 0 ? 0 : Math.round((state.hits / state.shots) * 100);
+      stopRound();
+      startBtn.disabled = false;
+
+      if (win) {
+        state.wins.add(keyFor());
+        resultText.className = "result good";
+        resultText.textContent = `Уровень пройден: ${state.hits}/${state.targetCount}, точность ${accuracy}%. Можно переходить дальше.`;
+        setMessage("Уровень пройден", "Хорошая работа. Следующий уровень уже доступен в списке или по кнопке “Дальше”.");
+      } else {
+        resultText.className = "result bad";
+        resultText.textContent = `Время вышло: сбито ${state.hits}/${state.targetCount}. Код верный, но тир нужно пройти быстрее.`;
+        setMessage("Время вышло", "Запусти тир ещё раз. Код переписывать не нужно, если проверка уже пройдена.");
+      }
+
+      renderLevels();
+      renderStats();
+      updateHud();
+    }
+
+    document.querySelectorAll("[data-difficulty]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-difficulty]").forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+        state.difficulty = button.dataset.difficulty;
+        selectLevel(state.level);
+      });
+    });
+
+    document.getElementById("checkBtn").addEventListener("click", checkCode);
+    document.getElementById("startBtn").addEventListener("click", startRound);
+    document.getElementById("hintBtn").addEventListener("click", () => {
+      const level = levels[state.level];
+      hintText.textContent = state.difficulty === "easy" ? level.easyHint : level.hardHint;
+    });
+    document.getElementById("templateBtn").addEventListener("click", () => {
+      const level = levels[state.level];
+      codeInput.value = state.difficulty === "easy" ? level.easyStart : level.hardStart;
+      state.solved = false;
+      startBtn.disabled = true;
+      resultText.className = "result";
+      resultText.textContent = "Шаблон вставлен. Заполни пропуски и проверь код.";
+    });
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      selectLevel((state.level - 1 + levels.length) % levels.length);
+    });
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      selectLevel((state.level + 1) % levels.length);
+    });
+
+    range.addEventListener("click", missShot);
+    range.addEventListener("mousemove", event => {
+      const rect = range.getBoundingClientRect();
+      crosshair.style.left = `${event.clientX - rect.left}px`;
+      crosshair.style.top = `${event.clientY - rect.top}px`;
+    });
+
+    codeInput.addEventListener("keydown", event => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        const start = codeInput.selectionStart;
+        const end = codeInput.selectionEnd;
+        codeInput.value = codeInput.value.slice(0, start) + "    " + codeInput.value.slice(end);
+        codeInput.selectionStart = codeInput.selectionEnd = start + 4;
+      }
+    });
+
+    selectLevel(0);
+  </script>
+</body>
+</html>
