@@ -121,16 +121,18 @@
     .object.ready { animation: popin .24s steps(3); }
     .object:hover { filter: brightness(1.12); }
     .object.target { border-radius: 50%; background: radial-gradient(circle,#fff8df 0 18%,#ff6b6b 18% 34%,#fff8df 34% 50%,#3a86ff 50% 68%,#111722 68% 100%); }
-    .object.fake { border-radius: 10px; background: radial-gradient(circle at 50% 36%,#1a2636 0 12%,transparent 13%),linear-gradient(180deg,#8fa1b4,#516274); }
+    .object.fake { border-radius: 50%; background: radial-gradient(circle,#dfe7ef 0 18%,#9aa7b4 18% 34%,#dfe7ef 34% 50%,#4d5f72 50% 68%,#111722 68% 100%); }
     .object.barrel { border-radius: 6px; background: linear-gradient(90deg,transparent 0 14%,rgba(255,255,255,.18) 14% 20%,transparent 20% 100%),linear-gradient(180deg,#d34d4d 0 20%,#7d2630 20% 44%,#d34d4d 44% 62%,#7d2630 62% 100%); }
     .object.bonus { border-radius: 50%; background: radial-gradient(circle,#fff7a8 0 22%,#ffd166 22% 48%,#35d399 48% 72%,#0e4b3a 72% 100%); }
+    .object.hint { border-radius: 50%; background: radial-gradient(circle,#fff8df 0 20%,#74e39a 20% 44%,#fff8df 44% 58%,#126d55 58% 100%); }
+    .object.hint::before { content: "?"; position: absolute; inset: 0; display: grid; place-items: center; color: #06120c; font-size: calc(var(--size) * .5); font-weight: 1000; text-shadow: 2px 2px 0 rgba(255,255,255,.45); }
     .object.hit { pointer-events: none; animation: vanish 240ms steps(4) forwards; }
     .boss { position: absolute; left: 50%; top: 54%; z-index: 6; width: 220px; height: 196px; transform: translate(-50%,-50%); border: 5px solid #100a16; border-radius: 8px; background: linear-gradient(180deg,#7a48a0 0 24%,#5b356d 24% 62%,#2c1a3a 62% 100%); box-shadow: 0 20px 0 rgba(0,0,0,.32), inset -22px -18px 0 rgba(0,0,0,.2), 0 0 34px rgba(194,155,255,.2); animation: bossIdle 1.4s steps(2) infinite; }
     .boss::before { content: ""; position: absolute; left: 58px; top: 42px; width: 20px; height: 20px; background: #ffe66d; box-shadow: 74px 0 0 #ffe66d, 36px 54px 0 9px #100a16, -28px -38px 0 2px #2c1a3a, 102px -38px 0 2px #2c1a3a; }
     .boss::after { content: ""; position: absolute; left: 42px; top: -20px; width: 32px; height: 44px; background: #ffcf5a; clip-path: polygon(0 100%, 50% 0, 100% 100%); box-shadow: 104px 0 0 #ffcf5a, 52px -8px 0 #ff7f50; }
     .boss.hurt { animation: bossHit .28s steps(3); filter: brightness(1.55); }
     .boss-question { position: absolute; left: 50%; top: 18%; z-index: 8; width: min(620px, calc(100% - 34px)); padding: 12px 14px; transform: translateX(-50%); border: 1px solid rgba(255,255,255,.22); border-radius: 8px; background: rgba(7,11,17,.84); text-align: center; color: var(--text); font-weight: 900; box-shadow: 0 12px 28px rgba(0,0,0,.28); }
-    .arm { position: absolute; z-index: 9; min-width: 142px; min-height: 48px; padding: 8px 10px; border: 4px solid #100a16; border-radius: 8px; background: linear-gradient(180deg,#3a96bd,#235f83); box-shadow: 0 8px 0 rgba(0,0,0,.28), inset -10px -8px 0 rgba(0,0,0,.16); font-weight: 900; }
+    .arm { position: absolute; z-index: 9; width: clamp(118px, 18vw, 190px); min-height: 50px; padding: 8px 10px; border: 4px solid #100a16; border-radius: 8px; background: linear-gradient(180deg,#3a96bd,#235f83); box-shadow: 0 8px 0 rgba(0,0,0,.28), inset -10px -8px 0 rgba(0,0,0,.16); font-weight: 900; line-height: 1.15; }
     .arm:hover { filter: brightness(1.12); }
     .arm.a { left: 12%; top: 37%; }
     .arm.b { right: 12%; top: 37%; }
@@ -232,7 +234,7 @@
               <div class="hud-box"><span>Время</span><b id="timeText">0.0</b></div>
               <div class="hud-box"><span>Цели</span><b id="targetText">0/0</b></div>
               <div class="hud-box"><span>Очки</span><b id="scoreText">0</b></div>
-              <div class="hud-box"><span>Подсказки</span><b id="hintTextCount">3</b></div>
+              <div class="hud-box"><span>Подсказки</span><b id="hintTextCount">0</b></div>
               <div class="hud-box"><span>Усиления</span><b id="powerText">0/0</b></div>
               <div class="hud-box"><span>Точность</span><b id="accuracyText">100%</b></div>
             </div>
@@ -262,7 +264,7 @@
               <span id="taskText"></span>
             </div>
             <h3 class="panel-title">Подсказка</h3>
-            <pre class="hint" id="hintBox">У каждой темы 3 подсказки. Лутбокс может дать еще одну.</pre>
+            <pre class="hint" id="hintBox">Подсказки выбиваются в тире из зеленых целей с вопросом.</pre>
           </article>
 
           <section class="card editor">
@@ -390,9 +392,9 @@
     ];
 
     const modes = {
-      easy: { label: "Легкий", task: "easy", time: 14, target: 6, fake: 1, barrel: 1, bonus: 1, speed: 42, size: 60 },
-      normal: { label: "Средний", task: "normal", time: 11, target: 8, fake: 2, barrel: 2, bonus: 1, speed: 72, size: 50 },
-      hard: { label: "Сложный", task: "hard", time: 8.5, target: 10, fake: 3, barrel: 3, bonus: 1, speed: 110, size: 42 }
+      easy: { label: "Легкий", task: "easy", time: 18, target: 3, fake: 0, hint: 1, size: 64 },
+      normal: { label: "Средний", task: "normal", time: 14, target: 4, fake: 1, hint: 1, size: 56 },
+      hard: { label: "Сложный", task: "hard", time: 11, target: 5, fake: 2, hint: 1, size: 48 }
     };
 
     function codeLevel(name, easyTask, normalTask, hardTask, easyHint, normalHint, hardHint, checkEasy, checkNormal, checkHard) {
@@ -468,6 +470,8 @@
       roundTime: 0,
       objects: [],
       bossIndex: 0,
+      waveTimer: null,
+      lastSpot: null,
       last: 0,
       timer: null,
       raf: null,
@@ -504,7 +508,7 @@
     function current() { return levels[state.level]; }
     function ensureHints(index = state.level) {
       const key = topicKey(index);
-      if (!state.hints.has(key)) state.hints.set(key, 3);
+      if (!state.hints.has(key)) state.hints.set(key, 0);
       return state.hints.get(key);
     }
     function setHints(value, index = state.level) {
@@ -525,6 +529,7 @@
     function stopRound() {
       state.running = false;
       clearInterval(state.timer);
+      clearTimeout(state.waveTimer);
       cancelAnimationFrame(state.raf);
       state.objects.forEach(obj => obj.el.remove());
       state.objects = [];
@@ -541,7 +546,7 @@
       lessonTitle.textContent = lvl.title;
       lessonText.textContent = lvl.lesson;
       codeInput.value = "";
-      hintBox.textContent = "У каждой темы 3 подсказки. За хороший тир можно получить еще подсказку или усиление.";
+      hintBox.textContent = "Подсказок пока 0. Сбей зеленую цель с вопросом в тире, чтобы получить подсказку для этой темы.";
       resultText.className = "result";
       resultText.textContent = lvl.type === "boss" ? "Это босс темы: нажми “Битва с боссом” и ответь на 3 вопроса." : "Пиши код с нуля и нажимай “Проверить код”.";
       startBtn.disabled = lvl.type !== "boss";
@@ -550,7 +555,7 @@
       taskLabel.textContent = lvl.type === "boss" ? "Босс-вопрос" : "Задание для допуска";
       taskText.textContent = lvl.type === "boss" ? "Босс задаст 3 вопроса. Стреляй по руке с правильным ответом." : field("task");
       arena.className = `arena ${lvl.arena || ""}`;
-      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: нужно ответить на 3 вопроса подряд." : "Сначала реши Python-задание. После проверки откроется тир.");
+      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: на каждый вопрос дается 10 секунд, ответы будут в разных местах." : "Сначала реши Python-задание. Потом в тире будет появляться по одной настоящей цели.");
       resetHud();
       renderFolders();
       renderStats();
@@ -563,8 +568,9 @@
       state.hits = 0;
       state.shots = 0;
       state.score = 0;
+      const globalStep = lvl.topicIndex * 4 + lvl.levelIndex;
       state.need = lvl.type === "boss" ? 3 : c.target + lvl.levelIndex;
-      state.roundTime = lvl.type === "boss" ? 30 : Math.max(5.5, c.time - lvl.topicIndex * .2 - lvl.levelIndex * .25);
+      state.roundTime = lvl.type === "boss" ? 10 : Math.max(6.5, c.time - globalStep * .35 - lvl.levelIndex * .8);
       state.timeLeft = state.roundTime;
       updateHud();
     }
@@ -652,7 +658,7 @@
       startBtn.disabled = false;
       resultText.className = "result good";
       resultText.textContent = "Код верный. Запускай тир: за точность выше 50% выпадет лутбокс.";
-      setMessage("Арена готова", "Сбей нужное число мишеней. Фейки и бочки портят точность, бонусы помогают.");
+      setMessage("Арена готова", "Настоящая цель появляется по одной. Фейковые цели похожи на обычные, а зеленая цель с вопросом дает подсказку.");
     }
 
     function startRound() {
@@ -671,7 +677,8 @@
       else spawnObjects();
       state.timer = setInterval(() => {
         if (performance.now() < state.frozenUntil) return;
-        state.timeLeft = Math.max(0, state.timeLeft - .1);
+        const timeScale = performance.now() < state.slowedUntil ? .45 : 1;
+        state.timeLeft = Math.max(0, state.timeLeft - .1 * timeScale);
         updateHud();
         if (state.timeLeft <= 0) finishRound(false, "Время вышло");
       }, 100);
@@ -679,41 +686,88 @@
     }
 
     function spawnObjects() {
+      state.lastSpot = null;
+      spawnWave();
+    }
+
+    function spawnWave() {
+      if (!state.running || current().type === "boss" || state.hits >= state.need) return;
+      clearTimeout(state.waveTimer);
+      clearWaveObjects(false);
+
+      const lvl = current();
       const c = mode();
-      const totalTargets = state.need + 2;
-      for (let i = 0; i < totalTargets; i++) addObject("target", i);
-      for (let i = 0; i < c.fake + current().levelIndex % 2; i++) addObject("fake", totalTargets + i);
-      for (let i = 0; i < c.barrel; i++) addObject("barrel", totalTargets + c.fake + i);
-      for (let i = 0; i < c.bonus; i++) addObject("bonus", totalTargets + c.fake + c.barrel + i);
+      const used = [];
+      addObject("target", 0, pickSpot(used));
+
+      const fakeCount = Math.min(2, c.fake + (lvl.levelIndex > 0 ? 1 : 0));
+      for (let i = 0; i < fakeCount; i++) addObject("fake", i + 1, pickSpot(used));
+
+      const shouldOfferHint = ensureHints() < 3 && (state.hits + lvl.levelIndex) % 2 === 0;
+      if (shouldOfferHint) addObject("hint", fakeCount + 1, pickSpot(used));
     }
 
-    function arenaPattern() {
-      return current().arena || current().topic;
+    function clearWaveObjects(animate = true) {
+      state.objects.forEach(obj => {
+        if (animate) obj.el.classList.add("hit");
+        setTimeout(() => obj.el.remove(), animate ? 180 : 0);
+      });
+      state.objects = [];
     }
 
-    function addObject(type, order = 0) {
+    function distance(a, b) {
+      if (!a || !b) return 999;
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function pickSpot(used) {
+      const spots = [
+        { x: 34, y: 31 }, { x: 49, y: 28 }, { x: 64, y: 33 }, { x: 79, y: 30 },
+        { x: 38, y: 49 }, { x: 55, y: 45 }, { x: 72, y: 51 }, { x: 86, y: 43 },
+        { x: 46, y: 66 }, { x: 63, y: 64 }, { x: 80, y: 66 }
+      ];
+      let candidates = spots.filter(spot =>
+        used.every(item => distance(item, spot) > 15) &&
+        distance(state.lastSpot, spot) > 18
+      );
+      if (!candidates.length) candidates = spots.filter(spot => used.every(item => distance(item, spot) > 12));
+      if (!candidates.length) candidates = spots;
+      const spot = candidates[Math.floor(Math.random() * candidates.length)];
+      used.push(spot);
+      return { ...spot };
+    }
+
+    function shuffled(items) {
+      const result = [...items];
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function addObject(type, order = 0, spot = null) {
       const c = mode();
       const el = document.createElement("button");
-      const levelBoost = 1 + current().levelIndex * .2 + current().topicIndex * .04;
-      const size = type === "bonus" ? c.size * .72 : type === "barrel" ? c.size * .9 : Math.max(34, c.size - current().levelIndex * 3);
-      const visibleNow = order < Math.max(3, Math.floor(state.need * .45));
-      const appearDelay = visibleNow ? 0 : 700 + order * 260 + Math.random() * 520;
+      const size = type === "hint" ? c.size * .72 : type === "fake" ? Math.max(38, c.size * .9) : Math.max(38, c.size - current().levelIndex * 2);
+      const point = spot || pickSpot([]);
       const obj = {
         type, el, size,
-        x: 34 + Math.random() * 58,
-        y: 26 + Math.random() * 44,
-        baseY: 26 + Math.random() * 44,
+        x: point.x,
+        y: point.y,
+        baseY: point.y,
         phase: Math.random() * 1000,
-        behavior: arenaPattern(),
-        visible: visibleNow,
-        appearAt: performance.now() + appearDelay,
-        moveAt: performance.now() + appearDelay + 650 + current().levelIndex * 240,
-        vx: (Math.random() > .5 ? 1 : -1) * (c.speed + Math.random() * c.speed * .65) * levelBoost / 100,
-        vy: (Math.random() > .5 ? 1 : -1) * (c.speed * .45 + Math.random() * c.speed * .45) * levelBoost / 100
+        behavior: current().arena || current().topic,
+        visible: true,
+        appearAt: 0,
+        moveAt: Infinity,
+        vx: 0,
+        vy: 0
       };
       el.type = "button";
-      el.className = `object ${type}${visibleNow ? " ready" : " waiting"}`;
+      el.className = `object ${type} ready`;
       el.style.setProperty("--size", `${size}px`);
+      el.setAttribute("aria-label", type === "hint" ? "Цель с подсказкой" : type === "fake" ? "Фейковая цель" : "Цель");
       el.addEventListener("click", event => {
         event.stopPropagation();
         shootObject(obj, event);
@@ -808,19 +862,30 @@
     function shootObject(obj, event) {
       if (!state.running || obj.el.classList.contains("hit")) return;
       state.shots++;
-      createShotEffect(event, obj.type === "target" || obj.type === "bonus");
+      createShotEffect(event, obj.type === "target" || obj.type === "hint");
       obj.el.classList.add("hit");
       setTimeout(() => obj.el.remove(), 240);
       state.objects = state.objects.filter(item => item !== obj);
       if (obj.type === "target") {
         state.hits++;
         state.score += 100;
-        if (state.hits >= state.need) finishRound(true, "Тир пройден");
-      } else if (obj.type === "bonus") {
-        state.score += 150;
-        state.timeLeft = Math.min(state.roundTime + 3, state.timeLeft + 3);
+        state.lastSpot = { x: obj.x, y: obj.y };
+        clearWaveObjects();
+        if (state.hits >= state.need) {
+          finishRound(true, "Тир пройден");
+        } else {
+          state.waveTimer = setTimeout(spawnWave, 430);
+        }
+      } else if (obj.type === "hint") {
+        setHints(Math.min(3, ensureHints() + 1));
+        state.score += 50;
+        resultText.className = "result good";
+        resultText.textContent = "Подсказка выбита. Теперь ее можно потратить в блоке с заданием.";
       } else {
-        state.score = Math.max(0, state.score - 100);
+        state.score = Math.max(0, state.score - 80);
+        state.timeLeft = Math.max(0, state.timeLeft - .7);
+        resultText.className = "result bad";
+        resultText.textContent = "Это была фейковая цель: минус очки и немного времени.";
       }
       updateHud();
     }
@@ -844,24 +909,32 @@
       question.textContent = `Вопрос ${state.bossIndex + 1}/3: ${data.question}`;
       arena.appendChild(question);
       taskText.textContent = data.question;
-      data.answers.forEach((answer, index) => {
+      const layouts = [
+        [{ left: "8%", top: "35%" }, { left: "74%", top: "35%" }, { left: "11%", top: "66%" }, { left: "72%", top: "66%" }],
+        [{ left: "30%", top: "29%" }, { left: "75%", top: "42%" }, { left: "8%", top: "56%" }, { left: "53%", top: "72%" }],
+        [{ left: "10%", top: "39%" }, { left: "57%", top: "28%" }, { left: "76%", top: "59%" }, { left: "32%", top: "72%" }]
+      ];
+      const spots = layouts[(state.bossIndex + current().topicIndex) % layouts.length];
+      const choices = shuffled(data.answers.map((answer, index) => ({ answer, correct: index === data.correct })));
+      choices.forEach((choice, index) => {
         const arm = document.createElement("button");
         arm.type = "button";
-        arm.className = `arm ${["a","b","c","d"][index]}`;
-        arm.textContent = answer;
+        arm.className = "arm";
+        arm.textContent = choice.answer;
+        arm.style.left = spots[index].left;
+        arm.style.top = spots[index].top;
         arm.addEventListener("click", event => {
           event.stopPropagation();
-          answerBoss(index, arm, event);
+          answerBoss(choice.correct, arm, event);
         });
         arena.appendChild(arm);
       });
     }
 
-    function answerBoss(index, arm, event) {
-      const data = current().questions[state.bossIndex];
+    function answerBoss(correct, arm, event) {
       state.shots++;
-      createShotEffect(event, index === data.correct);
-      if (index !== data.correct) {
+      createShotEffect(event, correct);
+      if (!correct) {
         state.score = Math.max(0, state.score - 120);
         finishRound(false, "Неверный ответ");
         return;
@@ -879,6 +952,8 @@
         setTimeout(() => finishRound(true, "Босс побежден"), 260);
       } else {
         state.bossIndex++;
+        state.timeLeft = state.roundTime;
+        updateHud();
         setTimeout(renderBossQuestion, 360);
       }
     }
@@ -913,9 +988,9 @@
 
     function openLoot() {
       const rewards = [
-        () => { setHints(ensureHints() + 1); return "Дополнительная подсказка для этой темы."; },
-        () => { state.power.slow++; return "Усиление: замедление мишеней."; },
-        () => { state.power.freeze++; return "Усиление: остановка времени."; }
+        () => { state.power.slow++; return "Усиление: замедление таймера."; },
+        () => { state.power.freeze++; return "Усиление: остановка времени."; },
+        () => { state.power.freeze++; state.power.slow++; return "Редкий набор: стоп-время и замедление таймера."; }
       ];
       const text = rewards[Math.floor(Math.random() * rewards.length)]();
       lootText.textContent = text;
@@ -980,7 +1055,7 @@
     document.getElementById("hintBtn").addEventListener("click", () => {
       const count = ensureHints();
       if (count <= 0) {
-        hintBox.textContent = "Подсказки по этой теме закончились. Выбей лутбокс, чтобы получить еще.";
+        hintBox.textContent = "Подсказок нет. Их можно получить только в тире: сбей зеленую цель с вопросом.";
         return;
       }
       setHints(count - 1);
