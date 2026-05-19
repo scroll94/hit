@@ -127,7 +127,6 @@
     .object.drain { border-radius: 50%; background: radial-gradient(circle,#ffd166 0 18%,#fff8df 18% 34%,#ff5f68 34% 50%,#fff8df 50% 68%,#111722 68% 100%); }
     .object.hint { border-radius: 50%; background: radial-gradient(circle,#fff8df 0 20%,#74e39a 20% 44%,#fff8df 44% 58%,#126d55 58% 100%); }
     .object.hint::before { content: "?"; position: absolute; inset: 0; display: grid; place-items: center; color: #06120c; font-size: calc(var(--size) * .5); font-weight: 1000; text-shadow: 2px 2px 0 rgba(255,255,255,.45); }
-    .object.runner { box-shadow: 0 9px 0 rgba(0,0,0,.25), 0 0 0 5px rgba(255,209,102,.2); }
     .object.hit { pointer-events: none; animation: vanish 240ms steps(4) forwards; }
     .boss { position: absolute; left: 50%; top: 54%; z-index: 6; width: 220px; height: 196px; transform: translate(-50%,-50%); border: 5px solid #100a16; border-radius: 8px; background: linear-gradient(180deg,#7a48a0 0 24%,#5b356d 24% 62%,#2c1a3a 62% 100%); box-shadow: 0 20px 0 rgba(0,0,0,.32), inset -22px -18px 0 rgba(0,0,0,.2), 0 0 34px rgba(194,155,255,.2); animation: bossIdle 1.4s steps(2) infinite; }
     .boss::before { content: ""; position: absolute; left: 58px; top: 42px; width: 20px; height: 20px; background: #ffe66d; box-shadow: 74px 0 0 #ffe66d, 36px 54px 0 9px #100a16, -28px -38px 0 2px #2c1a3a, 102px -38px 0 2px #2c1a3a; }
@@ -193,20 +192,6 @@
       .content { grid-template-rows: 460px auto; }
       .workbench { grid-template-columns: 1fr; }
     }
-    .theory-modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(0,0,0,.65); overflow-y: auto; padding: 16px; }
-    .theory-modal[hidden] { display: none; }
-    .theory-inner { width: min(1120px, 100%); padding: 24px; border: 1px solid rgba(255,255,255,.12); border-radius: 10px; background: linear-gradient(180deg, #101827, #080d14); box-shadow: 0 30px 70px rgba(0,0,0,.55); }
-    .theory-inner header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-bottom: 18px; }
-    .theory-inner h1 { margin: 0; color: var(--gold); font-size: clamp(22px,3vw,36px); text-shadow: 3px 3px 0 #000; }
-    .theory-inner header p { margin: 6px 0 0; color: var(--muted); line-height: 1.5; }
-    .theory-note { margin: 0 0 16px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 8px; background: rgba(23,35,53,.8); color: var(--muted); }
-    .theory-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
-    .theory-card { min-width: 0; padding: 16px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; background: rgba(17,26,38,.94); box-shadow: 0 16px 30px rgba(0,0,0,.22); }
-    .theory-card h2 { margin: 0 0 8px; color: var(--green); font-size: 20px; }
-    .theory-card p { margin: 0 0 10px; color: var(--muted); line-height: 1.55; }
-    .theory-card ul { margin: 0; padding-left: 20px; color: var(--text); line-height: 1.6; }
-    @media (max-width: 700px) { .theory-grid { grid-template-columns: 1fr; } }
-
     @media (max-width: 700px) {
       .topbar,.sidebar,.content { padding: 12px; }
       .hud { grid-template-columns: repeat(2,1fr); }
@@ -266,7 +251,6 @@
             <button class="btn start" type="button" id="startBtn" disabled>Начать тир</button>
             <button class="btn power" type="button" id="slowBtn">Замедлить</button>
             <button class="btn power" type="button" id="freezeBtn">Стоп-время</button>
-            <button class="btn" type="button" id="theoryBtn">Теория</button>
             <button class="btn" type="button" id="prevBtn">Назад</button>
             <button class="btn" type="button" id="nextBtn">Дальше</button>
           </div>
@@ -302,7 +286,7 @@
   <div class="loot" id="lootModal" hidden>
     <div class="loot-card">
       <div class="loot-box"></div>
-      <h2>Лутбокс!</h2>
+      <h2 id="lootTitle">Лутбокс!</h2>
       <p id="lootText"></p>
       <button class="btn start" type="button" id="lootClose">Забрать</button>
     </div>
@@ -425,16 +409,42 @@
     ];
 
     const modes = {
-      easy: { label: "Легкий", task: "easy", time: 14.5, target: 3, fake: 1, speed: .82, size: 60 },
-      normal: { label: "Средний", task: "normal", time: 11.2, target: 4, fake: 1, speed: 1.02, size: 52 },
-      hard: { label: "Сложный", task: "hard", time: 8.8, target: 5, fake: 2, speed: 1.25, size: 44 }
+      easy: { label: "Легкий", task: "easy", time: 12.5, target: 3, fake: 1, size: 60 },
+      normal: { label: "Средний", task: "normal", time: 9.8, target: 4, fake: 1, size: 52 },
+      hard: { label: "Сложный", task: "hard", time: 7.8, target: 5, fake: 2, size: 44 }
     };
 
     function codeLevel(name, easyTask, normalTask, hardTask, easyHint, normalHint, hardHint, checkEasy, checkNormal, checkHard) {
       return { type: "code", name, easyTask, normalTask, hardTask, easyHint, normalHint, hardHint, checkEasy, checkNormal, checkHard };
     }
     function bossLevel(name, question, answers, correct) {
-      return { type: "boss", name, questions: [{ question, answers, correct }, ...bossExtra(name)] };
+      return { type: "boss", name, questions: normalizeBossQuestions([{ question, answers, correct }, ...bossExtra(name)], name) };
+    }
+    function normalizeBossQuestions(questions, name) {
+      const pool = bossDistractors(name);
+      return questions.map((item, questionIndex) => {
+        const answers = [...item.answers];
+        for (const option of pool) {
+          if (answers.length >= 5) break;
+          if (!answers.includes(option)) answers.push(option);
+        }
+        while (answers.length < 5) answers.push(`вариант ${answers.length + questionIndex + 1}`);
+        return { question: item.question, answers: answers.slice(0, 5), correct: item.correct };
+      });
+    }
+    function bossDistractors(name) {
+      const base = ["print()", "input()", "if", "for", "def", "return", "len()", "append()", "int()", "else", "while", "range()"];
+      const byBoss = {
+        "Босс print": ["sep", "end", "кавычки", "число", "строка"],
+        "Босс переменных": ["значение", "имя", "=", "перезапись", "выражение"],
+        "Босс input": ["строка", "int()", "переменная", "prompt", "пользователь"],
+        "Босс if": [":", "elif", "else", "and", "отступ"],
+        "Босс строк": ["lower()", "strip()", "in", "+", "символы"],
+        "Босс списков": ["items[0]", "append()", "len()", "in", "индекс"],
+        "Босс циклов": ["range()", "break", "continue", "total", "итерация"],
+        "Босс функций": ["def", "параметр", "return", "вызов", "аргумент"]
+      };
+      return [...(byBoss[name] || []), ...base];
     }
     function bossExtra(name) {
       const pool = {
@@ -500,6 +510,7 @@
       need: 0,
       shots: 0,
       score: 0,
+      lootOpened: 0,
       timeLeft: 0,
       roundTime: 0,
       objects: [],
@@ -534,6 +545,7 @@
     const checkBtn = document.getElementById("checkBtn");
     const startBtn = document.getElementById("startBtn");
     const lootModal = document.getElementById("lootModal");
+    const lootTitle = document.getElementById("lootTitle");
     const lootText = document.getElementById("lootText");
 
     function mode() { return modes[state.difficulty]; }
@@ -593,7 +605,7 @@
       taskLabel.textContent = lvl.type === "boss" ? "Босс-вопрос" : "Задание для допуска";
       taskText.textContent = lvl.type === "boss" ? "Босс задаст 3 вопроса. Стреляй по руке с правильным ответом." : field("task");
       arena.className = `arena ${lvl.arena || ""}`;
-      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: на каждый вопрос дается 9 секунд, ответы будут в разных местах." : "Сначала реши Python-задание. Потом в тире будут волны из похожих целей.");
+      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: на каждый вопрос дается 10 секунд, будет 5 вариантов в разных местах." : "Сначала реши Python-задание. Потом в тире будут стоячие волны из похожих целей.");
       resetHud();
       renderFolders();
       renderStats();
@@ -608,7 +620,7 @@
       state.score = 0;
       const globalStep = state.level;
       state.need = lvl.type === "boss" ? 3 : c.target + Math.min(lvl.levelIndex, 2);
-      state.roundTime = lvl.type === "boss" ? 9 : Math.max(5.2, c.time - globalStep * .22 - Math.min(lvl.levelIndex, 4) * .55);
+      state.roundTime = lvl.type === "boss" ? 10 : Math.max(5.8, c.time - globalStep * .12 - Math.min(lvl.levelIndex, 4) * .35);
       state.timeLeft = state.roundTime;
       updateHud();
     }
@@ -671,7 +683,8 @@
       stats.innerHTML = `
         <span class="pill">Прогресс: ${done}/${levels.length}</span>
         <span class="pill">Сложность: ${mode().label}</span>
-        <span class="pill">Лут: замедл. ${state.power.slow}, стоп ${state.power.freeze}</span>
+        <span class="pill">Лутбоксы: ${state.lootOpened}</span>
+        <span class="pill">Усиления: замедл. ${state.power.slow}, стоп ${state.power.freeze}</span>
       `;
     }
 
@@ -697,7 +710,7 @@
       startBtn.disabled = false;
       resultText.className = "result good";
       resultText.textContent = "Код верный. Запускай тир: за точность выше 50% выпадет лутбокс.";
-      setMessage("Арена готова", "В волне три похожие цели: одна настоящая, одна может бежать, зеленая дает подсказку, а цель с желтым центром забирает ее.");
+      setMessage("Арена готова", "Мишени стоят, но времени меньше. В волне три похожие цели: настоящая, фейк, подсказка или ловушка с желтым центром.");
     }
 
     function startRound() {
@@ -740,8 +753,7 @@
       const shouldOfferHint = !state.hintDrops.has(topicKey()) && ensureHints() === 0 && state.hits === 0;
       const wave = [{ type: "target" }, { type: "fake" }, { type: shouldOfferHint ? "hint" : "drain" }];
       if (state.difficulty === "hard" || lvl.levelIndex >= 3) wave.push({ type: c.fake > 1 ? "fake" : "drain" });
-      const runnerIndex = Math.floor(Math.random() * Math.min(3, wave.length));
-      wave.forEach((item, index) => addObject(item.type, index, pickSpot(used), index === runnerIndex));
+      wave.forEach((item, index) => addObject(item.type, index, pickSpot(used)));
     }
 
     function clearWaveObjects(animate = true) {
@@ -783,27 +795,26 @@
       return result;
     }
 
-    function addObject(type, order = 0, spot = null, runner = false) {
+    function addObject(type, order = 0, spot = null) {
       const c = mode();
       const el = document.createElement("button");
       const size = type === "hint" ? c.size * .72 : type === "fake" || type === "drain" ? Math.max(36, c.size * .92) : Math.max(36, c.size - current().levelIndex * 2);
       const point = spot || pickSpot([]);
-      const boost = 1 + Math.min(current().levelIndex, 4) * .08 + current().topicIndex * .025;
       const obj = {
         type, el, size,
         x: point.x,
         y: point.y,
         baseY: point.y,
         phase: Math.random() * 1000,
-        behavior: runner ? "runner" : current().arena || current().topic,
+        behavior: "static",
         visible: true,
         appearAt: 0,
-        moveAt: runner ? performance.now() + 260 : Infinity,
-        vx: runner ? (Math.random() > .5 ? 1 : -1) * c.speed * 1.3 * boost : 0,
-        vy: runner ? (Math.random() > .5 ? 1 : -1) * c.speed * .42 * 1.3 * boost : 0
+        moveAt: Infinity,
+        vx: 0,
+        vy: 0
       };
       el.type = "button";
-      el.className = `object ${type}${runner ? " runner" : ""} ready`;
+      el.className = `object ${type} ready`;
       el.style.setProperty("--size", `${size}px`);
       el.setAttribute("aria-label", type === "hint" ? "Цель с подсказкой" : type === "drain" ? "Цель, которая забирает подсказку" : type === "fake" ? "Фейковая цель" : "Цель");
       el.addEventListener("click", event => {
@@ -958,9 +969,9 @@
       arena.appendChild(question);
       taskText.textContent = data.question;
       const layouts = [
-        [{ left: "8%", top: "35%" }, { left: "74%", top: "35%" }, { left: "11%", top: "66%" }, { left: "72%", top: "66%" }],
-        [{ left: "30%", top: "29%" }, { left: "75%", top: "42%" }, { left: "8%", top: "56%" }, { left: "53%", top: "72%" }],
-        [{ left: "10%", top: "39%" }, { left: "57%", top: "28%" }, { left: "76%", top: "59%" }, { left: "32%", top: "72%" }]
+        [{ left: "6%", top: "31%" }, { left: "74%", top: "30%" }, { left: "9%", top: "63%" }, { left: "73%", top: "66%" }, { left: "42%", top: "76%" }],
+        [{ left: "28%", top: "27%" }, { left: "77%", top: "42%" }, { left: "6%", top: "50%" }, { left: "56%", top: "72%" }, { left: "12%", top: "76%" }],
+        [{ left: "8%", top: "38%" }, { left: "58%", top: "27%" }, { left: "76%", top: "58%" }, { left: "30%", top: "72%" }, { left: "43%", top: "48%" }]
       ];
       const spots = layouts[(state.bossIndex + current().topicIndex) % layouts.length];
       const choices = shuffled(data.answers.map((answer, index) => ({ answer, correct: index === data.correct })));
@@ -1016,14 +1027,14 @@
 
     function finishRound(win, title) {
       const accuracy = state.shots ? Math.round((state.hits / state.shots) * 100) : 0;
-      const loot = win && accuracy > 50;
+      const lootTier = win ? lootTierFor(accuracy) : null;
       stopRound();
       if (win) {
         state.wins.add(levelKey());
         resultText.className = "result good";
-        resultText.textContent = `${title}: точность ${accuracy}%, очки ${state.score}. ${loot ? "Открывай лутбокс." : "Пройдено, но для лута нужна точность выше 50%."}`;
-        setMessage(title, loot ? "За точность выше 50% выпал лутбокс." : "Уровень пройден. Попробуй выбить лут точнее.");
-        if (loot) openLoot();
+        resultText.textContent = `${title}: точность ${accuracy}%, очки ${state.score}. ${lootTier ? `Выпал ${lootTier.label}.` : "Для лута нужна точность выше 55%."}`;
+        setMessage(title, lootTier ? `${lootTier.label}: чем выше точность, тем лучше награда.` : "Уровень пройден. Попробуй выбить лут точнее.");
+        if (lootTier) openLoot(lootTier);
       } else {
         resultText.className = "result bad";
         resultText.textContent = `${title}: точность ${accuracy}%, очки ${state.score}. Попробуй еще раз.`;
@@ -1034,13 +1045,32 @@
       updateHud();
     }
 
-    function openLoot() {
-      const rewards = [
-        () => { state.power.slow++; return "Усиление: замедление таймера."; },
-        () => { state.power.freeze++; return "Усиление: остановка времени."; },
-        () => { state.power.freeze++; state.power.slow++; return "Редкий набор: стоп-время и замедление таймера."; }
-      ];
+    function lootTierFor(accuracy) {
+      if (accuracy >= 95) return { id: "epic", label: "эпический лутбокс", power: 3 };
+      if (accuracy >= 78) return { id: "rare", label: "редкий лутбокс", power: 2 };
+      if (accuracy >= 55) return { id: "common", label: "обычный лутбокс", power: 1 };
+      return null;
+    }
+
+    function openLoot(tier) {
+      const tables = {
+        common: [
+          () => { state.power.slow++; return "1 заряд замедления таймера."; },
+          () => { state.power.freeze++; return "1 заряд стоп-времени."; }
+        ],
+        rare: [
+          () => { state.power.slow += 2; return "2 заряда замедления таймера."; },
+          () => { state.power.freeze++; state.power.slow++; return "1 стоп-время и 1 замедление."; }
+        ],
+        epic: [
+          () => { state.power.freeze += 2; state.power.slow++; return "2 стоп-времени и 1 замедление."; },
+          () => { state.power.freeze++; state.power.slow += 2; return "1 стоп-время и 2 замедления."; }
+        ]
+      };
+      const rewards = tables[tier.id];
       const text = rewards[Math.floor(Math.random() * rewards.length)]();
+      state.lootOpened++;
+      lootTitle.textContent = tier.label;
       lootText.textContent = text;
       lootModal.hidden = false;
       renderStats();
@@ -1127,105 +1157,6 @@
 
     makeGlobalPixels();
     selectLevel(0);
-  </script>
-  <div class="theory-modal" id="theoryModal" hidden>
-    <div class="theory-inner">
-      <header>
-        <div>
-          <h1>Теория Python Arena</h1>
-          <p>Короткие объяснения перед заданиями. Здесь нет готовых ответов из уровней, только правила и подсказки по мышлению.</p>
-        </div>
-        <button class="btn" type="button" id="theoryClose">Закрыть</button>
-      </header>
-      <p class="theory-note">Как учиться: сначала прочитай тему, потом решай уровень без подсказки. Если застрял, вернись сюда и проверь правило, а не готовый код.</p>
-      <div class="theory-grid">
-        <article class="theory-card">
-          <h2>print</h2>
-          <p>print выводит данные на экран. В скобках можно передавать текст, числа, выражения и несколько значений через запятую.</p>
-          <ul>
-            <li>Текст пишется в кавычках.</li>
-            <li>Числа можно выводить без кавычек.</li>
-            <li>Выражение сначала считается, потом выводится.</li>
-            <li>sep меняет разделитель между несколькими значениями.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>Переменные</h2>
-          <p>Переменная хранит значение под именем. Имя слева, значение справа, между ними знак присваивания.</p>
-          <ul>
-            <li>Значение можно перезаписать.</li>
-            <li>Переменные можно складывать, вычитать и использовать в выражениях.</li>
-            <li>Для обмена значений удобно временное хранилище.</li>
-            <li>Понятные имена помогают читать код.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>input</h2>
-          <p>input получает данные от пользователя. Важно помнить: результат input всегда приходит как строка.</p>
-          <ul>
-            <li>Для чисел часто нужен int.</li>
-            <li>Ввод лучше сразу сохранить в переменную.</li>
-            <li>После преобразования число можно сравнивать и считать.</li>
-            <li>Два ввода обычно хранят в двух разных переменных.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>if</h2>
-          <p>if выбирает, какой блок кода выполнить. Условие заканчивается двоеточием, а команды внутри пишутся с отступом.</p>
-          <ul>
-            <li>else срабатывает, когда условие if ложное.</li>
-            <li>elif проверяет дополнительный вариант.</li>
-            <li>and требует, чтобы оба условия были истинными.</li>
-            <li>Вложенный if нужен, когда проверка зависит от другой проверки.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>Строки</h2>
-          <p>Строка это текст. Ее можно склеивать, приводить к нижнему регистру, очищать от пробелов и проверять по длине.</p>
-          <ul>
-            <li>Склейка делается через плюс.</li>
-            <li>lower помогает сравнивать текст без учета больших букв.</li>
-            <li>strip убирает лишние пробелы по краям.</li>
-            <li>in проверяет, есть ли часть текста внутри строки.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>Списки</h2>
-          <p>Список хранит несколько элементов в одном месте. Первый элемент имеет индекс 0.</p>
-          <ul>
-            <li>К элементу обращаются через квадратные скобки.</li>
-            <li>append добавляет новый элемент в конец.</li>
-            <li>len считает количество элементов.</li>
-            <li>in проверяет, есть ли элемент в списке.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>Циклы</h2>
-          <p>Циклы повторяют команды. for чаще используют для известного количества повторений, while для условия.</p>
-          <ul>
-            <li>range задает последовательность чисел.</li>
-            <li>break останавливает цикл.</li>
-            <li>continue пропускает текущий шаг.</li>
-            <li>Переменная total часто собирает сумму по шагам.</li>
-          </ul>
-        </article>
-        <article class="theory-card">
-          <h2>def</h2>
-          <p>def создает функцию. Функция хранит набор действий и запускается только после вызова.</p>
-          <ul>
-            <li>Параметры передают данные внутрь функции.</li>
-            <li>return возвращает результат наружу.</li>
-            <li>Функцию можно использовать внутри if.</li>
-            <li>Одна хорошая функция делает одну понятную задачу.</li>
-          </ul>
-        </article>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    document.getElementById("theoryClose").addEventListener("click", () => { document.getElementById("theoryModal").hidden = true; });
-    document.getElementById("theoryBtn").addEventListener("click", () => { document.getElementById("theoryModal").hidden = false; });
   </script>
 </body>
 </html>
