@@ -93,6 +93,9 @@
     .arena.strings { background: linear-gradient(180deg,#7cc8e7 0 42%,#7465a3 42% 60%,#49395f 60% 100%); }
     .arena.lists { background: linear-gradient(180deg,#8dd7cf 0 42%,#6f9b5f 42% 62%,#4a4738 62% 100%); }
     .arena.loops { background: linear-gradient(180deg,#87c6f4 0 42%,#71965f 42% 62%,#5a4533 62% 100%); }
+    .arena.forop { background: linear-gradient(180deg,#88cef5 0 42%,#5f9b78 42% 62%,#3c5142 62% 100%); }
+    .arena.inop { background: linear-gradient(180deg,#83d6f0 0 42%,#8b6fb2 42% 62%,#403253 62% 100%); }
+    .arena.rangeop { background: linear-gradient(180deg,#94d0ff 0 42%,#8fa75e 42% 62%,#564a32 62% 100%); }
     .arena.functions { background: linear-gradient(180deg,#78b8ed 0 42%,#6578a3 42% 61%,#3b3f5b 61% 100%); }
     .arena.input { background: linear-gradient(180deg,#90d5ff 0 42%,#5fa184 42% 61%,#3e4d3f 61% 100%); }
     .arena.if { background: linear-gradient(180deg,#82c7ed 0 42%,#b37b55 42% 62%,#4d332b 62% 100%); }
@@ -116,11 +119,12 @@
 
     .shot-line { position: absolute; left: var(--sx); top: var(--sy); z-index: 14; width: var(--len); height: 4px; border-radius: 999px; background: linear-gradient(90deg, transparent, #fff7a8 20%, #ff6b35 72%, transparent); transform: rotate(var(--ang)); transform-origin: left center; pointer-events: none; animation: shot .18s linear forwards; }
     .impact { position: absolute; left: var(--x); top: var(--y); z-index: 15; width: 12px; height: 12px; border-radius: 50%; background: #fff7a8; box-shadow: 0 0 0 5px rgba(255,209,102,.3), 0 0 22px #ff5f68; pointer-events: none; transform: translate(-50%,-50%); animation: impact .34s steps(4) forwards; }
-    .object { position: absolute; left: 0; top: 0; z-index: 6; width: var(--size); height: var(--size); transform: translate(-50%,-50%); border: 4px solid #080d14; box-shadow: 0 9px 0 rgba(0,0,0,.25); transition: filter 100ms ease, opacity 160ms ease; }
+    .object { position: absolute; left: 0; top: 0; z-index: 6; width: var(--size); height: var(--size); transform: translate(-50%,-50%); border: 4px solid #080d14; box-shadow: 0 9px 0 rgba(0,0,0,.25), inset -8px -8px 0 rgba(0,0,0,.08); transition: filter 100ms ease, opacity 160ms ease; }
     .object.waiting { opacity: 0; transform: translate(-50%,-50%) scale(.55); pointer-events: none; }
     .object.ready { animation: popin .24s steps(3); }
     .object:hover { filter: brightness(1.12); }
     .object.target { border-radius: 50%; background: radial-gradient(circle,#fff8df 0 18%,#ff6b6b 18% 34%,#fff8df 34% 50%,#3a86ff 50% 68%,#111722 68% 100%); }
+    .object.target::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; border: 2px solid rgba(255,255,255,.18); }
     .object.fake { border-radius: 50%; background: radial-gradient(circle,#dfe7ef 0 18%,#9aa7b4 18% 34%,#dfe7ef 34% 50%,#4d5f72 50% 68%,#111722 68% 100%); }
     .object.barrel { border-radius: 6px; background: linear-gradient(90deg,transparent 0 14%,rgba(255,255,255,.18) 14% 20%,transparent 20% 100%),linear-gradient(180deg,#d34d4d 0 20%,#7d2630 20% 44%,#d34d4d 44% 62%,#7d2630 62% 100%); }
     .object.bonus { border-radius: 50%; background: radial-gradient(circle,#fff7a8 0 22%,#ffd166 22% 48%,#35d399 48% 72%,#0e4b3a 72% 100%); }
@@ -379,17 +383,59 @@
         ]
       },
       {
-        name: "циклы",
-        icon: "∞",
+        name: "while",
+        icon: "W",
         arena: "loops",
-        lesson: "Циклы повторяют команды. for удобен для range(), while повторяется по условию.",
+        lesson: "while повторяет команды, пока условие истинно. Важно менять значение внутри цикла, чтобы он закончился.",
         levels: [
-          codeLevel("range", "for i in range(3), выведи i.", "Выведи hit 3 раза.", "Считай total + 1.", "for i in range(3):\n    print(i)", "for i in range(3):\n    print('hit')", "total = 0\nfor i in range(3):\n    total = total + 1\nprint(total)", c => /for\s+i\s+in\s+range\s*\(\s*3\s*\)/i.test(c) && printVar(c, "i"), c => /range\s*\(\s*3\s*\)/i.test(c) && hasPrint(c, "hit"), c => /total\s*=\s*total\s*\+\s*1/i.test(c)),
-          codeLevel("while", "while ammo > 0.", "Выведи fire и уменьши ammo.", "После цикла reload.", "ammo = 3\nwhile ammo > 0:\n    ammo = ammo - 1", "ammo = 3\nwhile ammo > 0:\n    print('fire')\n    ammo = ammo - 1", "ammo = 3\nwhile ammo > 0:\n    print('fire')\n    ammo = ammo - 1\nprint('reload')", c => /while\s+ammo\s*>\s*0/i.test(c), c => hasPrint(c, "fire") && /ammo\s*=\s*ammo\s*-\s*1/i.test(c), c => hasPrint(c, "reload")),
-          codeLevel("break", "Сделай break при i == 2.", "Перед break выведи stop.", "Добавь else у цикла.", "for i in range(5):\n    if i == 2:\n        break", "for i in range(5):\n    if i == 2:\n        print('stop')\n        break", "for i in range(5):\n    if i == 2:\n        print('stop')\n        break\nelse:\n    print('done')", c => /break/i.test(c) && /i\s*==\s*2/i.test(c), c => hasPrint(c, "stop") && /break/i.test(c), c => /else\s*:/i.test(c) && hasPrint(c, "done")),
-          codeLevel("continue", "Пропусти i == 2 через continue.", "Выведи остальные i.", "Если i == 4, выведи finish.", "for i in range(5):\n    if i == 2:\n        continue", "for i in range(5):\n    if i == 2:\n        continue\n    print(i)", "for i in range(5):\n    if i == 2:\n        continue\n    if i == 4:\n        print('finish')", c => /continue/i.test(c) && /i\s*==\s*2/i.test(c), c => printVar(c, "i"), c => /i\s*==\s*4/i.test(c) && hasPrint(c, "finish")),
-          codeLevel("Сумма цикла", "Создай total = 0 и цикл range(4).", "Прибавляй i к total.", "После цикла выведи total.", "total = 0\nfor i in range(4):\n    pass", "total = 0\nfor i in range(4):\n    total = total + i", "total = 0\nfor i in range(4):\n    total = total + i\nprint(total)", c => /total\s*=\s*0/i.test(c) && /range\s*\(\s*4\s*\)/i.test(c), c => /total\s*=\s*total\s*\+\s*i/i.test(c), c => printVar(c, "total")),
-          bossLevel("Босс циклов", "Что делает range(3)?", ["дает 0,1,2", "дает 1,2,3", "создает строку", "останавливает код"], 0)
+          codeLevel("ammo", "Создай while ammo > 0.", "Уменьшай ammo на 1.", "После цикла выведи reload.", "ammo = 3\nwhile ammo > 0:\n    pass", "ammo = 3\nwhile ammo > 0:\n    ammo = ammo - 1", "ammo = 3\nwhile ammo > 0:\n    ammo = ammo - 1\nprint('reload')", c => /while\s+ammo\s*>\s*0/i.test(c), c => /ammo\s*=\s*ammo\s*-\s*1/i.test(c), c => hasPrint(c, "reload")),
+          codeLevel("hp", "Пока hp > 0, уменьшай hp.", "Выведи hit внутри while.", "После цикла выведи down.", "hp = 3\nwhile hp > 0:\n    hp = hp - 1", "hp = 3\nwhile hp > 0:\n    print('hit')\n    hp = hp - 1", "hp = 3\nwhile hp > 0:\n    print('hit')\n    hp = hp - 1\nprint('down')", c => /while\s+hp\s*>\s*0/i.test(c), c => hasPrint(c, "hit"), c => hasPrint(c, "down")),
+          codeLevel("break", "В while True добавь break.", "Перед break выведи stop.", "Break должен быть внутри if.", "while True:\n    break", "while True:\n    print('stop')\n    break", "command = 'stop'\nwhile True:\n    if command == 'stop':\n        print('stop')\n        break", c => /while\s+True\s*:/i.test(c) && /break/i.test(c), c => hasPrint(c, "stop"), c => /if\s+command\s*==\s*['\"]stop['\"]/i.test(c) && /break/i.test(c)),
+          codeLevel("continue", "В while count < 5 добавь continue.", "Пропусти count == 2.", "Выведи count после проверки.", "count = 0\nwhile count < 5:\n    count = count + 1\n    continue", "count = 0\nwhile count < 5:\n    count = count + 1\n    if count == 2:\n        continue", "count = 0\nwhile count < 5:\n    count = count + 1\n    if count == 2:\n        continue\n    print(count)", c => /while\s+count\s*<\s*5/i.test(c) && /continue/i.test(c), c => /count\s*==\s*2/i.test(c), c => printVar(c, "count")),
+          codeLevel("счетчик", "Создай timer = 5 и while timer > 0.", "Уменьшай timer.", "После цикла выведи go.", "timer = 5\nwhile timer > 0:\n    pass", "timer = 5\nwhile timer > 0:\n    timer = timer - 1", "timer = 5\nwhile timer > 0:\n    timer = timer - 1\nprint('go')", c => /timer\s*=\s*5/i.test(c) && /while\s+timer\s*>\s*0/i.test(c), c => /timer\s*=\s*timer\s*-\s*1/i.test(c), c => hasPrint(c, "go")),
+          bossLevel("Босс while", "Что важно сделать внутри while?", ["изменить условие", "удалить Python", "закрыть браузер", "ничего"], 0)
+        ]
+      },
+      {
+        name: "range",
+        icon: "R",
+        arena: "rangeop",
+        lesson: "range() создает последовательность чисел для повторений. Часто используется внутри for.",
+        levels: [
+          codeLevel("range(5)", "Создай цикл for i in range(5).", "Выведи i внутри цикла.", "Если i == 4, выведи finish.", "for i in range(5):\n    pass", "for i in range(5):\n    print(i)", "for i in range(5):\n    print(i)\n    if i == 4:\n        print('finish')", c => /for\s+i\s+in\s+range\s*\(\s*5\s*\)/i.test(c), c => printVar(c, "i"), c => /i\s*==\s*4/i.test(c) && hasPrint(c, "finish")),
+          codeLevel("start stop", "Используй range(2, 7).", "Выведи каждое число.", "Суммируй числа в total.", "for i in range(2, 7):\n    pass", "for i in range(2, 7):\n    print(i)", "total = 0\nfor i in range(2, 7):\n    total = total + i\nprint(total)", c => /range\s*\(\s*2\s*,\s*7\s*\)/i.test(c), c => printVar(c, "i"), c => /total\s*=\s*total\s*\+\s*i/i.test(c) && printVar(c, "total")),
+          codeLevel("step", "Используй range(0, 10, 2).", "Выведи четные числа.", "Если i == 8, выведи max.", "for i in range(0, 10, 2):\n    pass", "for i in range(0, 10, 2):\n    print(i)", "for i in range(0, 10, 2):\n    print(i)\n    if i == 8:\n        print('max')", c => /range\s*\(\s*0\s*,\s*10\s*,\s*2\s*\)/i.test(c), c => printVar(c, "i"), c => /i\s*==\s*8/i.test(c) && hasPrint(c, "max")),
+          codeLevel("обратный", "Используй range(5, 0, -1).", "Выведи обратный отсчет.", "После цикла выведи go.", "for i in range(5, 0, -1):\n    pass", "for i in range(5, 0, -1):\n    print(i)", "for i in range(5, 0, -1):\n    print(i)\nprint('go')", c => /range\s*\(\s*5\s*,\s*0\s*,\s*-\s*1\s*\)/i.test(c), c => printVar(c, "i"), c => hasPrint(c, "go")),
+          codeLevel("list range", "Создай nums = list(range(4)).", "Выведи nums.", "Выведи len(nums).", "nums = list(range(4))", "nums = list(range(4))\nprint(nums)", "nums = list(range(4))\nprint(len(nums))", c => /nums\s*=\s*list\s*\(\s*range\s*\(\s*4\s*\)\s*\)/i.test(c), c => printVar(c, "nums"), c => /len\s*\(\s*nums\s*\)/i.test(c)),
+          bossLevel("Босс range", "Что дает range(4)?", ["0, 1, 2, 3", "1, 2, 3, 4", "текст", "случайные числа"], 0)
+        ]
+      },
+      {
+        name: "for",
+        icon: "for",
+        arena: "forop",
+        lesson: "for перебирает элементы по очереди: числа из range(), строки или элементы списка.",
+        levels: [
+          codeLevel("перебор", "Создай for item in items.", "Выведи item.", "Если item == 'hit', выведи attack.", "items = ['hit', 'reload']\nfor item in items:\n    pass", "items = ['hit', 'reload']\nfor item in items:\n    print(item)", "items = ['hit', 'reload']\nfor item in items:\n    if item == 'hit':\n        print('attack')", c => /for\s+item\s+in\s+items\s*:/i.test(c), c => printVar(c, "item"), c => /item\s*==\s*['\"]hit['\"]/i.test(c) && hasPrint(c, "attack")),
+          codeLevel("счетчик", "Создай count = 0 и for enemy in enemies.", "Увеличивай count на 1.", "Выведи count после цикла.", "count = 0\nenemies = ['a', 'b', 'c']\nfor enemy in enemies:\n    pass", "count = 0\nenemies = ['a', 'b', 'c']\nfor enemy in enemies:\n    count = count + 1", "count = 0\nenemies = ['a', 'b', 'c']\nfor enemy in enemies:\n    count = count + 1\nprint(count)", c => /count\s*=\s*0/i.test(c) && /for\s+enemy\s+in\s+enemies\s*:/i.test(c), c => /count\s*=\s*count\s*\+\s*1/i.test(c), c => printVar(c, "count")),
+          codeLevel("фильтр", "Перебери colors.", "Если color == 'red', выведи hit.", "Иначе выведи skip.", "colors = ['red', 'blue']\nfor color in colors:\n    pass", "colors = ['red', 'blue']\nfor color in colors:\n    if color == 'red':\n        print('hit')", "colors = ['red', 'blue']\nfor color in colors:\n    if color == 'red':\n        print('hit')\n    else:\n        print('skip')", c => /for\s+color\s+in\s+colors\s*:/i.test(c), c => /color\s*==\s*['\"]red['\"]/i.test(c) && hasPrint(c, "hit"), c => /else\s*:/i.test(c) && hasPrint(c, "skip")),
+          codeLevel("сумма", "Сложи damage из списка damages.", "Добавляй damage к total.", "Если total > 20, выведи strong.", "damages = [5, 10, 15]\ntotal = 0\nfor damage in damages:\n    pass", "damages = [5, 10, 15]\ntotal = 0\nfor damage in damages:\n    total = total + damage", "damages = [5, 10, 15]\ntotal = 0\nfor damage in damages:\n    total = total + damage\nif total > 20:\n    print('strong')", c => /for\s+damage\s+in\s+damages\s*:/i.test(c), c => /total\s*=\s*total\s*\+\s*damage/i.test(c), c => /total\s*>\s*20/i.test(c) && hasPrint(c, "strong")),
+          codeLevel("строка", "Перебери буквы word.", "Выведи каждую букву.", "Если letter == 'y', выведи yes.", "word = 'python'\nfor letter in word:\n    pass", "word = 'python'\nfor letter in word:\n    print(letter)", "word = 'python'\nfor letter in word:\n    if letter == 'y':\n        print('yes')", c => /for\s+letter\s+in\s+word\s*:/i.test(c), c => printVar(c, "letter"), c => /letter\s*==\s*['\"]y['\"]/i.test(c) && hasPrint(c, "yes")),
+          bossLevel("Босс for", "Что делает for?", ["перебирает элементы", "создает переменную", "читает ввод", "закрывает программу"], 0)
+        ]
+      },
+      {
+        name: "in",
+        icon: "in",
+        arena: "inop",
+        lesson: "in проверяет, есть ли значение внутри строки, списка или другой коллекции.",
+        levels: [
+          codeLevel("строка", "Проверь 'py' in word.", "Если есть, выведи yes.", "Иначе выведи no.", "word = 'python'\nif 'py' in word:\n    pass", "word = 'python'\nif 'py' in word:\n    print('yes')", "word = 'python'\nif 'py' in word:\n    print('yes')\nelse:\n    print('no')", c => /['\"]py['\"]\s+in\s+word/i.test(c), c => hasPrint(c, "yes"), c => /else\s*:/i.test(c) && hasPrint(c, "no")),
+          codeLevel("список", "Проверь 'boss' in enemies.", "Если есть, выведи danger.", "Иначе clear.", "enemies = ['slime', 'boss']\nif 'boss' in enemies:\n    pass", "enemies = ['slime', 'boss']\nif 'boss' in enemies:\n    print('danger')", "enemies = ['slime', 'boss']\nif 'boss' in enemies:\n    print('danger')\nelse:\n    print('clear')", c => /['\"]boss['\"]\s+in\s+enemies/i.test(c), c => hasPrint(c, "danger"), c => /else\s*:/i.test(c) && hasPrint(c, "clear")),
+          codeLevel("not in", "Проверь 'trap' not in safe.", "Если нет, выведи go.", "Иначе stop.", "safe = ['road', 'base']\nif 'trap' not in safe:\n    pass", "safe = ['road', 'base']\nif 'trap' not in safe:\n    print('go')", "safe = ['road', 'base']\nif 'trap' not in safe:\n    print('go')\nelse:\n    print('stop')", c => /['\"]trap['\"]\s+not\s+in\s+safe/i.test(c), c => hasPrint(c, "go"), c => /else\s*:/i.test(c) && hasPrint(c, "stop")),
+          codeLevel("ввод", "Получи command через input().", "Если command in commands, выведи ok.", "Иначе unknown.", "commands = ['hit', 'reload']\ncommand = input('Команда: ')", "commands = ['hit', 'reload']\ncommand = input('Команда: ')\nif command in commands:\n    print('ok')", "commands = ['hit', 'reload']\ncommand = input('Команда: ')\nif command in commands:\n    print('ok')\nelse:\n    print('unknown')", c => /command\s*=\s*input\s*\(/i.test(c), c => /command\s+in\s+commands/i.test(c) && hasPrint(c, "ok"), c => /else\s*:/i.test(c) && hasPrint(c, "unknown")),
+          codeLevel("поиск буквы", "Проверь letter in word.", "Если есть, выведи found.", "Используй lower() перед проверкой.", "word = 'Python'\nletter = 'p'\nif letter in word:\n    pass", "word = 'Python'\nletter = 'p'\nif letter in word:\n    print('found')", "word = 'Python'\nletter = 'p'\nif letter.lower() in word.lower():\n    print('found')", c => /letter\s+in\s+word/i.test(c), c => hasPrint(c, "found"), c => /letter\.lower\s*\(\s*\)\s+in\s+word\.lower\s*\(\s*\)/i.test(c)),
+          bossLevel("Босс in", "Что проверяет in?", ["наличие внутри", "сложение чисел", "создание функции", "вывод текста"], 0)
         ]
       },
       {
@@ -442,6 +488,10 @@
         "Босс строк": ["lower()", "strip()", "in", "+", "символы"],
         "Босс списков": ["items[0]", "append()", "len()", "in", "индекс"],
         "Босс циклов": ["range()", "break", "continue", "total", "итерация"],
+        "Босс while": ["while", "break", "continue", "условие", "счетчик"],
+        "Босс range": ["range(5)", "range(2, 7)", "шаг", "start", "stop"],
+        "Босс for": ["элемент", "перебор", "for item in items", "итерация", "блок с отступом"],
+        "Босс in": ["наличие", "not in", "строка", "список", "условие"],
         "Босс функций": ["def", "параметр", "return", "вызов", "аргумент"]
       };
       return [...(byBoss[name] || []), ...base];
@@ -475,6 +525,22 @@
         "Босс циклов": [
           ["Что делает break?", ["останавливает цикл", "создает функцию", "читает ввод", "делает строку"], 0],
           ["Что повторяет команды?", ["цикл", "строка", "число", "комментарий"], 0]
+        ],
+        "Босс while": [
+          ["Когда while останавливается?", ["когда условие False", "когда есть print", "через input", "никогда"], 0],
+          ["Что делает continue?", ["переходит к следующему шагу", "создает функцию", "стирает список", "меняет цвет"], 0]
+        ],
+        "Босс range": [
+          ["Что НЕ входит в range(5)?", ["5", "0", "2", "4"], 0],
+          ["Что значит третий аргумент range(0, 10, 2)?", ["шаг", "имя", "ответ", "строка"], 0]
+        ],
+        "Босс for": [
+          ["Что получает переменная в for?", ["текущий элемент", "весь сайт", "только число 0", "ошибку"], 0],
+          ["Что обязательно после строки for?", ["двоеточие", "точка", "кавычки", "минус"], 0]
+        ],
+        "Босс in": [
+          ["Что вернет 'py' in 'python'?", ["True", "False", "None", "ошибка"], 0],
+          ["Для чего нужен not in?", ["проверить отсутствие", "создать список", "вывести текст", "сложить числа"], 0]
         ],
         "Босс функций": [
           ["Как создать функцию?", ["def", "if", "for", "input"], 0],
@@ -514,6 +580,10 @@
       timeLeft: 0,
       roundTime: 0,
       objects: [],
+      wave: 0,
+      waveHits: 0,
+      waveGoal: 0,
+      waveSpawned: 0,
       bossIndex: 0,
       waveTimer: null,
       lastSpot: null,
@@ -555,6 +625,16 @@
     function topicStartIndex(topicIndex) {
       const index = levels.findIndex(level => level.topicIndex === topicIndex);
       return index === -1 ? 0 : index;
+    }
+    function waveConfigs() {
+      return [
+        { goal: 3, visible: 3, time: 5 },
+        { goal: 6, visible: 6, time: 9 },
+        { goal: 13, visible: 7, time: 9 }
+      ];
+    }
+    function totalWaveTargets() {
+      return waveConfigs().reduce((sum, wave) => sum + wave.goal, 0);
     }
     function ensureHints(index = state.level) {
       const key = topicKey(index);
@@ -598,14 +678,14 @@
       codeInput.value = "";
       hintBox.textContent = "На тему можно выбить только 1 подсказку. Ищи зеленую цель с вопросом в тире.";
       resultText.className = "result";
-      resultText.textContent = lvl.type === "boss" ? "Это босс темы: нажми “Битва с боссом” и ответь на 3 вопроса." : "Пиши код с нуля и нажимай “Проверить код”.";
+      resultText.textContent = lvl.type === "boss" ? "Это босс темы: нажми “Битва с боссом” и ответь на 3 вопроса. На каждый вопрос 5 секунд." : "Пиши код с нуля и нажимай “Проверить код”.";
       startBtn.disabled = lvl.type !== "boss";
       startBtn.textContent = lvl.type === "boss" ? "Битва с боссом" : "Начать тир";
       checkBtn.hidden = lvl.type === "boss";
       taskLabel.textContent = lvl.type === "boss" ? "Босс-вопрос" : "Задание для допуска";
-      taskText.textContent = lvl.type === "boss" ? "Босс задаст 3 вопроса. Стреляй по руке с правильным ответом." : field("task");
+      taskText.textContent = lvl.type === "boss" ? "Босс задаст 3 вопроса. На каждый вопрос будет 5 вариантов ответа." : field("task");
       arena.className = `arena ${lvl.arena || ""}`;
-      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: на каждый вопрос дается 10 секунд, будет 5 вариантов в разных местах." : "Сначала реши Python-задание. Потом в тире будут стоячие волны из похожих целей.");
+      setMessage(lvl.type === "boss" ? "Босс темы" : "Арена закрыта", lvl.type === "boss" ? "Нажми “Битва с боссом”: на каждый вопрос 5 секунд, будет 5 вариантов в разных местах." : "Сначала реши Python-задание. Потом тир: 3 цели за 5 сек, 6 целей за 9 сек, 13 целей за 9 сек.");
       resetHud();
       renderFolders();
       renderStats();
@@ -618,16 +698,19 @@
       state.hits = 0;
       state.shots = 0;
       state.score = 0;
-      const globalStep = state.level;
-      state.need = lvl.type === "boss" ? 3 : c.target + Math.min(lvl.levelIndex, 2);
-      state.roundTime = lvl.type === "boss" ? 10 : Math.max(5.8, c.time - globalStep * .12 - Math.min(lvl.levelIndex, 4) * .35);
+      state.wave = 0;
+      state.waveHits = 0;
+      state.waveGoal = lvl.type === "boss" ? 3 : waveConfigs()[0].goal;
+      state.waveSpawned = 0;
+      state.need = lvl.type === "boss" ? 3 : totalWaveTargets();
+      state.roundTime = lvl.type === "boss" ? 5 : waveConfigs()[0].time;
       state.timeLeft = state.roundTime;
       updateHud();
     }
 
     function updateHud() {
       timeText.textContent = state.timeLeft.toFixed(1);
-      targetText.textContent = `${state.hits}/${state.need}`;
+      targetText.textContent = state.running && current().type !== "boss" ? `В${state.wave + 1}: ${state.waveHits}/${state.waveGoal}` : `${state.hits}/${state.need}`;
       scoreText.textContent = state.score;
       hintTextCount.textContent = ensureHints();
       powerText.textContent = `${state.power.slow}/${state.power.freeze}`;
@@ -710,7 +793,7 @@
       startBtn.disabled = false;
       resultText.className = "result good";
       resultText.textContent = "Код верный. Запускай тир: за точность выше 50% выпадет лутбокс.";
-      setMessage("Арена готова", "Мишени стоят, но времени меньше. В волне три похожие цели: настоящая, фейк, подсказка или ловушка с желтым центром.");
+      setMessage("Арена готова", "Тир идет в 3 волны. В третьей волне на экране будет максимум 7 целей, остальные появятся после попаданий.");
     }
 
     function startRound() {
@@ -739,21 +822,38 @@
 
     function spawnObjects() {
       state.lastSpot = null;
+      state.wave = 0;
+      state.hits = 0;
       spawnWave();
     }
 
     function spawnWave() {
-      if (!state.running || current().type === "boss" || state.hits >= state.need) return;
+      if (!state.running || current().type === "boss") return;
       clearTimeout(state.waveTimer);
       clearWaveObjects(false);
 
-      const lvl = current();
-      const c = mode();
-      const used = [];
-      const shouldOfferHint = !state.hintDrops.has(topicKey()) && ensureHints() === 0 && state.hits === 0;
-      const wave = [{ type: "target" }, { type: "fake" }, { type: shouldOfferHint ? "hint" : "drain" }];
-      if (state.difficulty === "hard" || lvl.levelIndex >= 3) wave.push({ type: c.fake > 1 ? "fake" : "drain" });
-      wave.forEach((item, index) => addObject(item.type, index, pickSpot(used)));
+      const config = waveConfigs()[state.wave];
+      if (!config) {
+        finishRound(true, "Тир пройден");
+        return;
+      }
+      state.waveHits = 0;
+      state.waveGoal = config.goal;
+      state.waveSpawned = 0;
+      state.roundTime = config.time;
+      state.timeLeft = config.time;
+      spawnTargets(Math.min(config.visible, config.goal));
+      resultText.className = "result";
+      resultText.textContent = `Волна ${state.wave + 1}/3: сбей ${config.goal} целей за ${config.time} секунд.`;
+      updateHud();
+    }
+
+    function spawnTargets(count) {
+      const used = state.objects.map(obj => ({ x: obj.x, y: obj.y }));
+      for (let i = 0; i < count && state.waveSpawned < state.waveGoal; i++) {
+        addObject("target", i, pickSpot(used));
+        state.waveSpawned++;
+      }
     }
 
     function clearWaveObjects(animate = true) {
@@ -920,13 +1020,22 @@
       state.objects = state.objects.filter(item => item !== obj);
       if (obj.type === "target") {
         state.hits++;
+        state.waveHits++;
         state.score += 100;
         state.lastSpot = { x: obj.x, y: obj.y };
-        clearWaveObjects();
-        if (state.hits >= state.need) {
-          finishRound(true, "Тир пройден");
+        if (state.waveSpawned < state.waveGoal) {
+          spawnTargets(1);
+        }
+        if (state.waveHits >= state.waveGoal) {
+          clearWaveObjects();
+          if (state.wave >= waveConfigs().length - 1) {
+            finishRound(true, "Тир пройден");
+          } else {
+            state.wave++;
+            state.waveTimer = setTimeout(spawnWave, 520);
+          }
         } else {
-          state.waveTimer = setTimeout(spawnWave, 430);
+          updateHud();
         }
       } else if (obj.type === "hint") {
         setHints(1);
